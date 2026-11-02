@@ -1,0 +1,125 @@
+# Deploys (LAUNCH_PLAN §2–§4). STUB until the hosting decision (spec D8) is made.
+#
+# - staging:    after CI is green on `main` (workflow_run), in the `staging` environment.
+# - production: on a release tag `v*` (approved RC after G2), in the `production` environment
+#               (configure required reviewers on that environment to make the approval explicit).
+#
+# Every job after `gate` is SKIPPED unless the environment holds the secret DEPLOY_TOKEN.
+# Secrets needed (GitHub environment secrets, never in the repo): DEPLOY_TOKEN, DATABASE_URL,
+# JWT_SECRET, S3_ENDPOINT_URL, S3_BUCKET, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY; mobile: EXPO_TOKEN.
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        type: choice
+        options: [staging, production]
+        default: staging
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-${{ github.event_name == 'push' && 'production' || inputs.environment || 'staging' }}
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    name: Gate · ${{ github.event_name == 'push' && 'production' || inputs.environment || 'staging' }}
+    # Staging only after a green CI run triggered by a push to main.
+    if: >-
+      github.event_name != 'workflow_run' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    environment: ${{ github.event_name == 'push' && 'production' || inputs.environment || 'staging' }}
+    outputs:
+      enabled: ${{ steps.check.outputs.enabled }}
+      target: ${{ steps.check.outputs.target }}
+    steps:
+      - id: check
+        env:
+          DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+          TARGET: ${{ github.event_name == 'push' && 'production' || inputs.environment || 'staging' }}
+        run: |
+          echo "target=$TARGET" >> "$GITHUB_OUTPUT"
+          if [ -n "$DEPLOY_TOKEN" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::warning title=Deploy blocked::DEPLOY_TOKEN is not set in the '$TARGET' environment (spec D8 / LAUNCH_PLAN §1). Deploy jobs are skipped."
+            echo "Deploy to **$TARGET** skipped: \`DEPLOY_TOKEN\` missing from the \`$TARGET\` environment (spec D8)." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  images:
+    name: Build & push images (GHCR)
+    needs: gate
+    if: needs.gate.outputs.enabled == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        include:
+          - name: api
+            context: apps/api
+            file: apps/api/Dockerfile
+          - name: web
+            context: .
+            file: apps/web/Dockerfile
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.file }}
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.event.workflow_run.head_sha || github.sha }}
+            ghcr.io/${{ github.repository }}/${{ matrix.name }}:${{ github.ref_type == 'tag' && github.ref_name || 'main' }}
+          cache-from: type=gha,scope=${{ matrix.name }}
+
+  migrate:
+    name: Migrate (expand/contract, before deploy)
+    needs: [gate, images]
+    if: needs.gate.outputs.enabled == 'true'
+    runs-on: ubuntu-latest
+    environment: ${{ needs.gate.outputs.target }}
+    steps:
+      - name: Run Alembic migrations with the new API image
+        run: |
+          echo "Stub: run 'alembic upgrade head' in the API image against the ${{ needs.gate.outputs.target }} DATABASE_URL"
+          echo "on the chosen host (spec D8). Implemented at S6 by the devops agent."
+
+  deploy:
+    name: Deploy · ${{ needs.gate.outputs.target }}
+    needs: [gate, migrate]
+    if: needs.gate.outputs.enabled == 'true'
+    runs-on: ubuntu-latest
+    environment: ${{ needs.gate.outputs.target }}
+    steps:
+      - name: Deploy images
+        run: |
+          echo "Stub: deploy api + web images to ${{ needs.gate.outputs.target }} using DEPLOY_TOKEN (host per spec D8)."
+      - name: Post-deploy smoke (LAUNCH_PLAN §3)
+        env:
+          API_URL: ${{ vars.API_URL }}
+        run: |
+          if [ -z "$API_URL" ]; then echo "::warning::vars.API_URL not set for this environment; smoke skipped"; exit 0; fi
+          curl -fsS "$API_URL/v1/readyz"
