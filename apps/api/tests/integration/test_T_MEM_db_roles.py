@@ -179,8 +179,12 @@ def test_T_MEM_2_runtime_role_has_no_delete_or_truncate_anywhere(app_conn: Conne
             "AND has_table_privilege(current_user, c.oid, p.priv)"
         )
     ).all()
-    # Idempotency records are disposable request bookkeeping, not history.
-    assert {(r.relname, r.priv) for r in rows} == {("idempotency_records", "DELETE")}
+    # Idempotency records and login rate-limit counters (M1-T4, D10 M-7) are disposable request
+    # bookkeeping, not history. Nothing else may be deleted or truncated.
+    assert {(r.relname, r.priv) for r in rows} == {
+        ("idempotency_records", "DELETE"),
+        ("auth_attempts", "DELETE"),
+    }
 
 
 # --- T-MEM-2: completion_reports / calibration_records are write-once ------------------------

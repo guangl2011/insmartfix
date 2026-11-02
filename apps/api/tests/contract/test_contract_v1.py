@@ -12,7 +12,7 @@ from fastapi.testclient import TestClient
 
 from app.contract.common import ErrorCode, OfferUnavailableReason
 from app.main import create_app
-from tests.conftest import make_settings
+from tests.conftest import authed_app, make_settings
 
 WO = "6f1c1d2e-0000-4000-8000-000000000001"
 CID = "6f1c1d2e-0000-4000-8000-000000000002"
@@ -199,18 +199,34 @@ def test_photo_upload_is_single_multipart_file(spec: dict[str, Any]) -> None:
     assert schema["properties"]["file"]["format"] == "binary"
 
 
+IMPLEMENTED = {"login", "logout", "get_me", "healthz", "readyz"}
+
+
 @pytest.mark.parametrize(
     ("method", "path", "op_id"),
-    [(m, p, o) for m, p, o, _ in V1_ROUTES if p not in {"/v1/healthz", "/v1/readyz"}],
+    [(m, p, o) for m, p, o, _ in V1_ROUTES if o not in IMPLEMENTED],
 )
 def test_stubs_answer_501_envelope(method: str, path: str, op_id: str) -> None:
     url = path.replace("{cid}", CID).replace("{wo}", WO)
-    with TestClient(create_app(make_settings())) as c:
+    with TestClient(authed_app()) as c:
         res = c.request(method, url, json=BODIES.get(op_id))
     assert res.status_code == 501, (op_id, res.text)
     body = res.json()
     assert body["error"]["code"] == "NOT_IMPLEMENTED"
     assert "server_time" in body
+
+
+@pytest.mark.parametrize(
+    ("method", "path", "op_id"),
+    [(m, p, o) for m, p, o, _ in V1_ROUTES if p not in PUBLIC],
+)
+def test_every_non_public_route_needs_a_token(method: str, path: str, op_id: str) -> None:
+    url = path.replace("{cid}", CID).replace("{wo}", WO)
+    with TestClient(create_app(make_settings())) as c:
+        res = c.request(method, url, json=BODIES.get(op_id))
+    assert res.status_code == 401, (op_id, res.text)
+    assert res.json()["error"]["code"] == "UNAUTHENTICATED"
+    assert res.headers["www-authenticate"] == "Bearer"
 
 
 def test_validation_error_is_enveloped_and_does_not_echo_input() -> None:

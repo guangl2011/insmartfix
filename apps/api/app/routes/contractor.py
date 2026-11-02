@@ -5,17 +5,17 @@ Each `/contractor/{cid}/…` route has a `/me/…` alias that resolves `contract
 
 from uuid import UUID
 
-from fastapi import APIRouter, Response, Security
+from fastapi import APIRouter, Depends, Response
 from fastapi.responses import JSONResponse
 
+from app.auth.deps import get_principal
 from app.contract.common import IdempotencyKeyHeader, error_responses
 from app.contract.schedule import DeclineRequest, ScheduleResponse
-from app.contract.security import bearer_scheme
 from app.contract.workorders import WorkOrderDetail
 from app.routes import API_PREFIX
 from app.routes._stub import not_implemented
 
-router = APIRouter(prefix=API_PREFIX, tags=["contractor"], dependencies=[Security(bearer_scheme)])
+router = APIRouter(prefix=API_PREFIX, tags=["contractor"], dependencies=[Depends(get_principal)])
 
 SCHEDULE_ERRORS = error_responses(401, 403, 404, 422, 501)
 ACCEPT_ERRORS = error_responses(401, 403, 404, 409, 422, 501)
