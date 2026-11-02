@@ -6,3 +6,5 @@ export const CORE_PACKAGE = '@insmartfix/core' as const;
 
 export * from './ports';
 export * from './drafts';
+export * from './sla';
+export * from './ordering';
