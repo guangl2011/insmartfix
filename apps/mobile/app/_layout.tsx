@@ -2,6 +2,7 @@ import 'react-native-url-polyfill/auto';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SessionProvider } from '@/src/auth';
 import { getMobileConfig } from '@/src/config';
 import { getAppServices, ServicesProvider, type AppServices } from '@/src/data';
 import { initCrashReporting } from '@/src/observability/crash';
@@ -36,7 +37,9 @@ export default function RootLayout({ services }: RootLayoutProps = {}) {
     <SafeAreaProvider>
       <ThemeProvider>
         <ServicesProvider services={s}>
-          <ThemedStack />
+          <SessionProvider>
+            <ThemedStack />
+          </SessionProvider>
         </ServicesProvider>
       </ThemeProvider>
     </SafeAreaProvider>

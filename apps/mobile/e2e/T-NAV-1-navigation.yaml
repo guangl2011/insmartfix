@@ -4,12 +4,7 @@ name: T-NAV-1 bottom nav and routes
 tags:
   - T-NAV-1
 ---
-- launchApp:
-    clearState: true
-- extendedWaitUntil:
-    visible:
-      id: 'nav-inbox'
-    timeout: 60000
+- runFlow: subflows/login.yaml
 - assertVisible:
     id: 'nav-account'
 - assertVisible:

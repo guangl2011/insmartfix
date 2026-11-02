@@ -1,4 +1,5 @@
 import { Tabs } from 'expo-router';
+import { RequireSession } from '@/src/auth';
 import { BottomNav } from '@/src/shell';
 import { useTheme } from '@/src/theme';
 
@@ -6,12 +7,17 @@ import { useTheme } from '@/src/theme';
 export default function TabsLayout() {
   const theme = useTheme();
   return (
-    <Tabs
-      tabBar={(props) => <BottomNav state={props.state} navigateToTab={props.navigateToTab} />}
-      screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: theme.colors.surface0 } }}
-    >
-      <Tabs.Screen name="inbox" options={{ title: 'Inbox' }} />
-      <Tabs.Screen name="account" options={{ title: 'Account' }} />
-    </Tabs>
+    <RequireSession>
+      <Tabs
+        tabBar={(props) => <BottomNav state={props.state} navigateToTab={props.navigateToTab} />}
+        screenOptions={{
+          headerShown: false,
+          sceneStyle: { backgroundColor: theme.colors.surface0 },
+        }}
+      >
+        <Tabs.Screen name="inbox" options={{ title: 'Inbox' }} />
+        <Tabs.Screen name="account" options={{ title: 'Account' }} />
+      </Tabs>
+    </RequireSession>
   );
 }

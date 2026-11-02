@@ -1,4 +1,4 @@
-# Launch smoke: the app cold-starts into the shell (DATA_SOURCE=mock in the nightly job).
+# Launch smoke: a fresh install cold-starts into Login (DATA_SOURCE=mock in the nightly job).
 # Run: maestro test apps/mobile/e2e   (needs a booted emulator/simulator with the app installed)
 appId: ai.insmart.fix
 name: Launch smoke
@@ -7,8 +7,8 @@ tags:
 ---
 - launchApp:
     clearState: true
+    clearKeychain: true
 - extendedWaitUntil:
-    visible:
-      id: 'nav-inbox'
+    visible: 'Jobs that arrive diagnosed.'
     timeout: 60000
-- takeScreenshot: launch
+- takeScreenshot: launch-login

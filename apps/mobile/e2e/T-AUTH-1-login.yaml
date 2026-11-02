@@ -1,0 +1,16 @@
+# T-AUTH-1 (D I): valid login → Inbox; the token is restored on relaunch (T-AUTH-5 behaviour).
+appId: ai.insmart.fix
+name: T-AUTH-1 valid login lands on the inbox
+tags:
+  - T-AUTH-1
+---
+- runFlow: subflows/login.yaml
+- assertVisible:
+    id: 'inbox-screen'
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: 'inbox-screen'
+    timeout: 30000
+- takeScreenshot: T-AUTH-1-inbox

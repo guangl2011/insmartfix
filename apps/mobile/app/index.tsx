@@ -1,6 +1,9 @@
 import { Redirect } from 'expo-router';
+import { useSession } from '@/src/auth';
 
-/** `/` → the Inbox, the home screen (design §5). */
+/** `/` → the Inbox when signed in (design §5), otherwise Login. */
 export default function Index() {
-  return <Redirect href="/inbox" />;
+  const { status } = useSession();
+  if (status === 'loading') return null;
+  return <Redirect href={status === 'signedIn' ? '/inbox' : '/login'} />;
 }

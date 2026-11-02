@@ -1,0 +1,26 @@
+# Signs Marco in from a fresh launch. In the nightly mock build any password except
+# "wrong-password" is accepted; against a live stack pass EMAIL / PASSWORD with `-e`.
+appId: ai.insmart.fix
+env:
+  EMAIL: marco@test.insmart.ai
+  PASSWORD: mock-only
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+- extendedWaitUntil:
+    visible:
+      id: 'login-email'
+    timeout: 60000
+- tapOn:
+    id: 'login-email'
+- inputText: ${EMAIL}
+- tapOn:
+    id: 'login-password'
+- inputText: ${PASSWORD}
+- hideKeyboard
+- tapOn: 'Sign in'
+- extendedWaitUntil:
+    visible:
+      id: 'nav-inbox'
+    timeout: 20000
