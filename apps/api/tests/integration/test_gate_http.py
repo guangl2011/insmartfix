@@ -187,8 +187,6 @@ def test_gate_allows_the_offeree_through_to_the_handler(api: TestClient, setup: 
     marco = setup.midtown.contractors["marco"]
     assert api.get(f"/v1/workorders/{setup.offer_wo}", headers=marco.auth).status_code == 501
     assert api.get("/v1/me/schedule", headers=marco.auth).status_code == 200
-    res = api.post(f"/v1/me/accept/{setup.offer_wo}", headers=marco.auth)
-    assert res.status_code == 501
     # Offeree may not do bound-only work yet (row 13).
     res = api.post(
         f"/v1/workorders/{setup.offer_wo}/transition",
@@ -196,6 +194,14 @@ def test_gate_allows_the_offeree_through_to_the_handler(api: TestClient, setup: 
         headers=marco.auth,
     )
     assert res.status_code == 403
+    # Accept binds; now bound-only work passes the gate (stub until M2-T3).
+    assert api.post(f"/v1/me/accept/{setup.offer_wo}", headers=marco.auth).status_code == 200
+    res = api.post(
+        f"/v1/workorders/{setup.offer_wo}/transition",
+        json={"action": "advance", "stage": "EN_ROUTE"},
+        headers=marco.auth,
+    )
+    assert res.status_code == 501
 
 
 def test_gate_answers_409_for_a_past_candidate_without_touching_dispatch(

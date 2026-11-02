@@ -209,6 +209,10 @@ IMPLEMENTED = {
     "list_failure_codes",
     "get_contractor_schedule",
     "get_my_schedule",
+    "accept_offer",
+    "accept_my_offer",
+    "decline_offer",
+    "decline_my_offer",
 }
 
 

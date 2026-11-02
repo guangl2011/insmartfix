@@ -23,6 +23,12 @@ class Person:
     contractor_id: uuid.UUID | None
 
     @property
+    def cid(self) -> uuid.UUID:
+        """The contractor id (contractors only)."""
+        assert self.contractor_id is not None
+        return self.contractor_id
+
+    @property
     def token(self) -> str:
         tok, _ = issue_token(
             user_id=self.user_id,

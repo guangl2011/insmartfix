@@ -98,30 +98,64 @@ def summaries_for_contractor(
         q = q.where(Dispatch.current_contractor_id == contractor_id)
     rows = db.execute(q).all()
     states = lifecycle_states(db, [r.WorkOrder.id for r in rows])
-    out = []
-    for wo, asset, site, dispatch, cand in rows:
-        t = teasers.teaser(asset.id)
-        life = states[wo.id]
-        out.append(
-            SummaryRow(
-                OfferSummary(
-                    wo_id=wo.id,
-                    asset=AssetRef(id=asset.id, name=asset.name, subtype=asset.subtype),
-                    site=SiteRef(name=site.name, location=site.location or ""),
-                    symptom=wo.symptom,
-                    wo_source=WoSource(wo.wo_source),
-                    dispatch_state=DispatchState(dispatch.state),
-                    lifecycle_stage=LifecycleStage(life.stage) if life.stage else None,
-                    sla_deadline=dispatch.sla_deadline if dispatch.state == "PENDING" else None,
-                    match_score=float(cand.match_score),
-                    match_reason=cand.match_reason,
-                    teaser=t.teaser,
-                    health_score=t.health_score,
-                    failure_risk=t.failure_risk,
-                    last_advanced_at=life.last_advanced_at,
-                ),
-                candidate_state=cand.state,
-                accepted_at=cand.responded_at if cand.state == "ACCEPTED" else None,
-            )
-        )
-    return out
+    return [
+        build_row(wo, asset, site, dispatch, cand, states[wo.id], teasers)
+        for wo, asset, site, dispatch, cand in rows
+    ]
+
+
+def build_row(
+    wo: WorkOrder,
+    asset: Asset,
+    site: Site,
+    dispatch: Dispatch,
+    cand: DispatchCandidate | None,
+    life: LifecycleState,
+    teasers: TeaserSource,
+) -> SummaryRow:
+    t = teasers.teaser(asset.id)
+    return SummaryRow(
+        OfferSummary(
+            wo_id=wo.id,
+            asset=AssetRef(id=asset.id, name=asset.name, subtype=asset.subtype),
+            site=SiteRef(name=site.name, location=site.location or ""),
+            symptom=wo.symptom,
+            wo_source=WoSource(wo.wo_source),
+            dispatch_state=DispatchState(dispatch.state),
+            lifecycle_stage=LifecycleStage(life.stage) if life.stage else None,
+            sla_deadline=dispatch.sla_deadline if dispatch.state == "PENDING" else None,
+            match_score=float(cand.match_score) if cand else 0.0,
+            match_reason=cand.match_reason if cand else "",
+            teaser=t.teaser,
+            health_score=t.health_score,
+            failure_risk=t.failure_risk,
+            last_advanced_at=life.last_advanced_at,
+        ),
+        candidate_state=cand.state if cand else "",
+        accepted_at=cand.responded_at if cand and cand.state == "ACCEPTED" else None,
+    )
+
+
+def summary_for_workorder(
+    db: Session, wo_id: UUID, contractor_id: UUID | None, teasers: TeaserSource
+) -> SummaryRow | None:
+    """One WO. Match score/reason come from `contractor_id`'s candidate row (a contractor sees
+    only their own standing, FR-3.5); for owner/FM, from the current or top-ranked candidate."""
+    row = db.execute(
+        select(WorkOrder, Asset, Site, Dispatch)
+        .join(Asset, Asset.id == WorkOrder.asset_id)
+        .join(Site, Site.id == Asset.site_id)
+        .join(Dispatch, Dispatch.wo_id == WorkOrder.id)
+        .where(WorkOrder.id == wo_id)
+    ).first()
+    if row is None:
+        return None
+    wo, asset, site, dispatch = row
+    who = contractor_id or dispatch.current_contractor_id
+    cand_q = select(DispatchCandidate).where(DispatchCandidate.wo_id == wo_id)
+    cand = (
+        db.execute(cand_q.where(DispatchCandidate.contractor_id == who)).scalar_one_or_none()
+        if who
+        else db.execute(cand_q.order_by(DispatchCandidate.rank).limit(1)).scalar_one_or_none()
+    )
+    return build_row(wo, asset, site, dispatch, cand, lifecycle_states(db, [wo_id])[wo_id], teasers)
