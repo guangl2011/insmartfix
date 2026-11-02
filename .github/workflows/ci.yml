@@ -63,10 +63,19 @@ jobs:
         run: uv run ruff check --output-format=github . && uv run ruff format --check .
       - name: mypy (strict)
         run: uv run mypy
+      - name: Create the runtime DB role (D10 H-5; the migrations grant it least privilege)
+        env:
+          PGPASSWORD: ci-only
+        run: >-
+          psql -h localhost -U ci -d insmartfix_test -v ON_ERROR_STOP=1 -c
+          "CREATE ROLE insmartfix_app LOGIN NOSUPERUSER NOCREATEROLE NOCREATEDB NOBYPASSRLS
+          PASSWORD 'ci-app-only'"
       - name: pytest (unit + integration against Postgres 16 + MinIO)
         env:
           ENV: ci
-          DATABASE_URL: postgresql+psycopg://ci:ci-only@localhost:5432/insmartfix_test
+          # The app runs as the runtime role; the tests migrate as the owner (T-MEM-1, T-MEM-2).
+          DATABASE_URL: postgresql+psycopg://insmartfix_app:ci-app-only@localhost:5432/insmartfix_test
+          MIGRATIONS_DATABASE_URL: postgresql+psycopg://ci:ci-only@localhost:5432/insmartfix_test
           REQUIRE_INTEGRATION: '1'
           S3_ENDPOINT_URL: http://localhost:9000
           S3_BUCKET: insmartfix-test
@@ -75,7 +84,8 @@ jobs:
         run: uv run pytest --cov --cov-report=term --cov-report=json --cov-report=xml
       - name: Alembic migrations apply cleanly
         env:
-          DATABASE_URL: postgresql+psycopg://ci:ci-only@localhost:5432/insmartfix_test
+          DATABASE_URL: postgresql+psycopg://insmartfix_app:ci-app-only@localhost:5432/insmartfix_test
+          MIGRATIONS_DATABASE_URL: postgresql+psycopg://ci:ci-only@localhost:5432/insmartfix_test
         run: uv run alembic upgrade head && uv run alembic downgrade base && uv run alembic upgrade head
       - name: Coverage thresholds (TEST_PLAN §4)
         run: |

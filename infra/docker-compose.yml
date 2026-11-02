@@ -23,10 +23,13 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
+      # Password for the runtime role created by postgres/init (D10 H-5).
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD}
     ports:
       - '127.0.0.1:${POSTGRES_HOST_PORT}:5432'
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
       interval: 3s

@@ -4,7 +4,7 @@ from collections.abc import Callable, Iterator
 import pytest
 from fastapi.testclient import TestClient
 
-from app.db.session import get_engine
+from app.db.session import get_engine, get_sessionmaker
 from app.main import create_app
 from app.settings import Settings, get_settings
 
@@ -32,6 +32,7 @@ def client_for() -> Iterator[ClientFactory]:
     yield _make
     for c in created:
         c.close()
+    get_sessionmaker.cache_clear()
     get_engine.cache_clear()
 
 
