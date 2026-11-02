@@ -44,36 +44,842 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Login
+         * @description Email + password login (FR-1.1). Every failure is an identical 401 (D10 L-3).
+         */
+        post: operations["login"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Logout
+         * @description Revoke every outstanding token of the caller by bumping `token_version` (D11).
+         */
+        post: operations["logout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Me
+         * @description The signed-in user; contractors get their `contractor_id` here (FR-1.4).
+         */
+        get: operations["get_me"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/contractor/{cid}/schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Contractor Schedule
+         * @description Offers + active jobs for one contractor (own `cid`, or owner/FM in the same tenant).
+         */
+        get: operations["get_contractor_schedule"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get My Schedule
+         * @description Alias of the schedule for the caller's own `contractor_id` (FR-1.4).
+         */
+        get: operations["get_my_schedule"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/contractor/{cid}/accept/{wo}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Accept Offer
+         * @description Server-authoritative accept (FR-4.1, FR-5.3). 409 OFFER_UNAVAILABLE on a lost race.
+         */
+        post: operations["accept_offer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/accept/{wo}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Accept My Offer
+         * @description Alias of accept for the caller's own `contractor_id`.
+         */
+        post: operations["accept_my_offer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/contractor/{cid}/decline/{wo}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Decline Offer
+         * @description Decline with an optional reason (FR-4.2); re-offers to the next rank (FR-4.3).
+         */
+        post: operations["decline_offer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/decline/{wo}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Decline My Offer
+         * @description Alias of decline for the caller's own `contractor_id`.
+         */
+        post: operations["decline_my_offer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/workorders/{wo}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Workorder
+         * @description Detail + packet. Contractor view omits `ranked_candidates`; owner/FM view has it (FR-3.5).
+         */
+        get: operations["get_workorder"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/workorders/{wo}/transition": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Transition Workorder
+         * @description Advance EN_ROUTE → ARRIVED, or undo via a CORRECTION event (FR-6.1, FR-6.3, FR-6.4).
+         */
+        post: operations["transition_workorder"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/workorders/{wo}/photos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload Workorder Photo
+         * @description Upload one completion photo (FR-7.7). The body is streamed and parsed by the handler.
+         */
+        post: operations["upload_workorder_photo"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/workorders/{wo}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Complete Workorder
+         * @description Submit the completion report; labels calibration (FR-7.4, FR-7.5).
+         */
+        post: operations["complete_workorder"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/failure-codes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Failure Codes
+         * @description Codes for an asset subtype, ordered and grouped by component (FR-7.1).
+         */
+        get: operations["list_failure_codes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/dispatch/workorders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Dispatch Workorder
+         * @description Create a WO with ranked candidates; offers rank 1 with `sla_deadline = now + sla_minutes`.
+         */
+        post: operations["create_dispatch_workorder"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** ErrorBody */
-        ErrorBody: {
-            /** Code */
-            code: string;
-            /** Message */
-            message: string;
+        /** AssetIdentity */
+        AssetIdentity: {
+            /** Name */
+            name: string;
+            /** Subtype */
+            subtype: string;
+            /** Make */
+            make?: string | null;
+            /** Model */
+            model?: string | null;
+            /** Install Year */
+            install_year?: number | null;
+            /** Location */
+            location?: string | null;
+            /** Duty */
+            duty?: string | null;
+        };
+        /** AssetRef */
+        AssetRef: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /** Subtype */
+            subtype: string;
         };
         /**
+         * CalibrationLabel
+         * @enum {string}
+         */
+        CalibrationLabel: "MATCH" | "PARTIAL" | "MISS" | "NO_PREDICTION";
+        /**
+         * CandidateState
+         * @enum {string}
+         */
+        CandidateState: "QUEUED" | "OFFERED" | "ACCEPTED" | "DECLINED" | "EXPIRED" | "WITHDRAWN";
+        /**
+         * CompletionReport
+         * @description `POST /workorders/{wo}/complete` body (FR-7.1). Bounds per D10 M-8.
+         *
+         *     Server-only values (`label`, `actor`, `at`, predicted code) are never accepted from the body.
+         */
+        CompletionReport: {
+            /** Failure Code */
+            failure_code: string;
+            /** Actual Fault Matched */
+            actual_fault_matched: boolean;
+            /** Parts Used */
+            parts_used?: components["schemas"]["PartUsed"][];
+            /** Labor Hours */
+            labor_hours: number;
+            /** Notes */
+            notes?: string | null;
+            /** Technician Id */
+            technician_id: string;
+            /** Photo Ids */
+            photo_ids?: string[];
+        };
+        /** CompletionResponse */
+        CompletionResponse: {
+            /**
+             * Server Time
+             * Format: date-time
+             * @description Server clock at response time (ISO-8601 UTC).
+             */
+            server_time: string;
+            calibration_label: components["schemas"]["CalibrationLabel"];
+            /**
+             * Record Updated
+             * @constant
+             */
+            record_updated: true;
+        };
+        /**
+         * Decision
+         * @description Decision summary (FR-3.2). Without a packet: symptom-only, no cause or action (FR-3.4).
+         */
+        Decision: {
+            /** Health Score */
+            health_score?: number | null;
+            failure_risk?: components["schemas"]["FailureRisk"] | null;
+            /** Root Cause */
+            root_cause?: string | null;
+            /** Recommended Action */
+            recommended_action?: string | null;
+            /**
+             * Evidence Summary
+             * @description e.g. "Based on 3 recent events + 2 active insights"
+             */
+            evidence_summary: string;
+            /** Evidence */
+            evidence?: components["schemas"]["EvidenceItem"][];
+        };
+        /**
+         * DeclineReason
+         * @enum {string}
+         */
+        DeclineReason: "too_far" | "no_capacity" | "wrong_skill" | "other";
+        /**
+         * DeclineRequest
+         * @description Optional reason (FR-4.2); an empty body `{}` declines with no reason ("Skip").
+         */
+        DeclineRequest: {
+            reason?: components["schemas"]["DeclineReason"] | null;
+            /** Note */
+            note?: string | null;
+        };
+        /** DispatchCandidateIn */
+        DispatchCandidateIn: {
+            /**
+             * Contractor Id
+             * Format: uuid
+             */
+            contractor_id: string;
+            /** Match Score */
+            match_score: number;
+            /** Reason */
+            reason: string;
+        };
+        /** DispatchCreateRequest */
+        DispatchCreateRequest: {
+            /**
+             * Asset Id
+             * Format: uuid
+             */
+            asset_id: string;
+            /** Symptom */
+            symptom: string;
+            /** Sla Minutes */
+            sla_minutes: number;
+            /**
+             * Candidates
+             * @description Ranked best first; rank 1 is offered first.
+             */
+            candidates: components["schemas"]["DispatchCandidateIn"][];
+        };
+        /** DispatchCreateResponse */
+        DispatchCreateResponse: {
+            /**
+             * Server Time
+             * Format: date-time
+             * @description Server clock at response time (ISO-8601 UTC).
+             */
+            server_time: string;
+            /**
+             * Wo Id
+             * Format: uuid
+             */
+            wo_id: string;
+        };
+        /**
+         * DispatchState
+         * @description Dispatch states (spec §4.4). EXPIRED is per candidate, see `CandidateState`.
+         * @enum {string}
+         */
+        DispatchState: "UNDISPATCHED" | "PENDING" | "ACCEPTED" | "IN_PROGRESS" | "COMPLETED" | "ESCALATED" | "NO_CONTRACTORS";
+        /** ErrorBody */
+        ErrorBody: {
+            code: components["schemas"]["ErrorCode"];
+            /**
+             * Message
+             * @description Human-readable text, safe to show to the user.
+             */
+            message: string;
+            /** @description Only on `OFFER_UNAVAILABLE`. */
+            reason?: components["schemas"]["OfferUnavailableReason"] | null;
+        };
+        /**
+         * ErrorCode
+         * @description Every `error.code` the API can return (spec §5; D12 adds IDEMPOTENCY_KEY_REUSED).
+         * @enum {string}
+         */
+        ErrorCode: "INVALID_CREDENTIALS" | "RATE_LIMITED" | "UNAUTHENTICATED" | "FORBIDDEN" | "NOT_FOUND" | "METHOD_NOT_ALLOWED" | "OFFER_UNAVAILABLE" | "INVALID_TRANSITION" | "ALREADY_COMPLETED" | "VALIDATION_ERROR" | "IDEMPOTENCY_KEY_REUSED" | "PAYLOAD_TOO_LARGE" | "UNSUPPORTED_MEDIA_TYPE" | "NOT_IMPLEMENTED" | "NOT_READY" | "INTERNAL";
+        /**
          * ErrorEnvelope
-         * @description `{"error": {"code": "STRING", "message": "human text"}}` — every API error.
+         * @description `{"error": {"code": "STRING", "message": "human text"}, "server_time": ...}` (spec §5).
          */
         ErrorEnvelope: {
+            /**
+             * Server Time
+             * Format: date-time
+             * @description Server clock at response time (ISO-8601 UTC).
+             */
+            server_time: string;
             error: components["schemas"]["ErrorBody"];
         };
+        /** EvidenceItem */
+        EvidenceItem: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "event" | "maintenance" | "insight";
+            /** Summary */
+            summary: string;
+            /** At */
+            at?: string | null;
+        };
+        /** FailureCode */
+        FailureCode: {
+            /** Code */
+            code: string;
+            /** Subtype */
+            subtype: string;
+            /** Component Group */
+            component_group: string;
+            /** Label */
+            label: string;
+        };
+        /**
+         * FailureCodeList
+         * @description `FailureCode[]` wrapped in an object so the body can carry `server_time` (spec §5).
+         */
+        FailureCodeList: {
+            /**
+             * Server Time
+             * Format: date-time
+             * @description Server clock at response time (ISO-8601 UTC).
+             */
+            server_time: string;
+            /** Failure Codes */
+            failure_codes: components["schemas"]["FailureCode"][];
+        };
+        /**
+         * FailureRisk
+         * @description Insmart failure-risk bands (COLOR_LANGUAGE §3).
+         * @enum {string}
+         */
+        FailureRisk: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
         /** HealthResponse */
         HealthResponse: {
+            /**
+             * Server Time
+             * Format: date-time
+             * @description Server clock at response time (ISO-8601 UTC).
+             */
+            server_time: string;
             /**
              * Status
              * @constant
              */
             status: "ok";
+        };
+        /** Insight */
+        Insight: {
+            /** Summary */
+            summary: string;
+            /** Confidence */
+            confidence?: number | null;
+        };
+        /**
+         * LifecycleEvent
+         * @description One immutable lifecycle memory event (FR-6.1, FR-6.3).
+         */
+        LifecycleEvent: {
+            /**
+             * Event Id
+             * Format: uuid
+             */
+            event_id: string;
+            type: components["schemas"]["LifecycleEventType"];
+            /** @description Set on ADVANCE. */
+            stage?: components["schemas"]["LifecycleStage"] | null;
+            /**
+             * Corrects Event Id
+             * @description Set on CORRECTION.
+             */
+            corrects_event_id?: string | null;
+            /**
+             * Actor User Id
+             * Format: uuid
+             */
+            actor_user_id: string;
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+        };
+        /**
+         * LifecycleEventType
+         * @enum {string}
+         */
+        LifecycleEventType: "ADVANCE" | "CORRECTION";
+        /**
+         * LifecycleStage
+         * @description Derived from memory events (FR-6.1). Both sit inside backend `IN_PROGRESS`.
+         * @enum {string}
+         */
+        LifecycleStage: "EN_ROUTE" | "ARRIVED";
+        /** LoginRequest */
+        LoginRequest: {
+            /** Email */
+            email: string;
+            /** Password */
+            password: string;
+        };
+        /**
+         * LoginResponse
+         * @description `POST /auth/login`. Web keeps `access_token` server-side in an httpOnly cookie (FR-1.2).
+         */
+        LoginResponse: {
             /**
              * Server Time
              * Format: date-time
+             * @description Server clock at response time (ISO-8601 UTC).
              */
             server_time: string;
+            /** Access Token */
+            access_token: string;
+            /**
+             * Token Type
+             * @description Always `bearer`.
+             * @default bearer
+             */
+            token_type: string;
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            user: components["schemas"]["UserProfile"];
+        };
+        /** MaintenanceRecord */
+        MaintenanceRecord: {
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** Summary */
+            summary: string;
+            /** Performed By */
+            performed_by?: string | null;
+        };
+        /**
+         * MeResponse
+         * @description `GET /me`.
+         */
+        MeResponse: {
+            /**
+             * Server Time
+             * Format: date-time
+             * @description Server clock at response time (ISO-8601 UTC).
+             */
+            server_time: string;
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
+            /** Name */
+            name: string;
+            role: components["schemas"]["Role"];
+            /**
+             * Tenant Id
+             * Format: uuid
+             */
+            tenant_id: string;
+            /** Contractor Id */
+            contractor_id?: string | null;
+            /** Company */
+            company?: string | null;
+        };
+        /**
+         * OfferSummary
+         * @description One inbox card (spec §5 OfferSummary).
+         */
+        OfferSummary: {
+            /**
+             * Wo Id
+             * Format: uuid
+             */
+            wo_id: string;
+            asset: components["schemas"]["AssetRef"];
+            site: components["schemas"]["SiteRef"];
+            /** Symptom */
+            symptom: string;
+            wo_source: components["schemas"]["WoSource"];
+            dispatch_state: components["schemas"]["DispatchState"];
+            lifecycle_stage?: components["schemas"]["LifecycleStage"] | null;
+            /** Sla Deadline */
+            sla_deadline?: string | null;
+            /**
+             * Match Score
+             * @description The caller's own match score, 0 to 1.
+             */
+            match_score: number;
+            /** Match Reason */
+            match_reason: string;
+            teaser: components["schemas"]["Teaser"];
+            /** Health Score */
+            health_score?: number | null;
+            failure_risk?: components["schemas"]["FailureRisk"] | null;
+            /** Last Advanced At */
+            last_advanced_at?: string | null;
+        };
+        /**
+         * OfferUnavailableReason
+         * @description `reason` on `409 OFFER_UNAVAILABLE` (spec §5). Never names another candidate (D10 Q1).
+         * @enum {string}
+         */
+        OfferUnavailableReason: "expired" | "reassigned" | "withdrawn";
+        /**
+         * OwnerWorkOrderDetail
+         * @description Owner/FM view (FR-10.1): the contractor view plus the ranked candidate list.
+         */
+        OwnerWorkOrderDetail: {
+            /**
+             * Server Time
+             * Format: date-time
+             * @description Server clock at response time (ISO-8601 UTC).
+             */
+            server_time: string;
+            /**
+             * Wo Id
+             * Format: uuid
+             */
+            wo_id: string;
+            asset: components["schemas"]["AssetRef"];
+            site: components["schemas"]["SiteRef"];
+            /** Symptom */
+            symptom: string;
+            wo_source: components["schemas"]["WoSource"];
+            dispatch_state: components["schemas"]["DispatchState"];
+            lifecycle_stage?: components["schemas"]["LifecycleStage"] | null;
+            /** Sla Deadline */
+            sla_deadline?: string | null;
+            /**
+             * Match Score
+             * @description The caller's own match score, 0 to 1.
+             */
+            match_score: number;
+            /** Match Reason */
+            match_reason: string;
+            teaser: components["schemas"]["Teaser"];
+            /** Health Score */
+            health_score?: number | null;
+            failure_risk?: components["schemas"]["FailureRisk"] | null;
+            /** Last Advanced At */
+            last_advanced_at?: string | null;
+            decision?: components["schemas"]["Decision"] | null;
+            /** Pre Diagnostic Available */
+            pre_diagnostic_available: boolean;
+            packet?: components["schemas"]["Packet"] | null;
+            /** Lifecycle History */
+            lifecycle_history: components["schemas"]["LifecycleEvent"][];
+            /** Predicted Failure Code */
+            predicted_failure_code?: string | null;
+            /** Ranked Candidates */
+            ranked_candidates: components["schemas"]["RankedCandidate"][];
+        };
+        /**
+         * Packet
+         * @description Pre-diagnostic packet sections (FR-3.3).
+         */
+        Packet: {
+            asset_identity: components["schemas"]["AssetIdentity"];
+            /** Recent Events */
+            recent_events: components["schemas"]["PacketEvent"][];
+            /** Recent Maintenance */
+            recent_maintenance: components["schemas"]["MaintenanceRecord"][];
+            /** Active Insights */
+            active_insights: components["schemas"]["Insight"][];
+            /** Predicted Parts */
+            predicted_parts: components["schemas"]["PredictedPart"][];
+        };
+        /** PacketEvent */
+        PacketEvent: {
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** Kind */
+            kind: string;
+            /** Summary */
+            summary: string;
+        };
+        /** PartUsed */
+        PartUsed: {
+            /** Part Code */
+            part_code?: string | null;
+            /** Description */
+            description: string;
+            /** Qty */
+            qty: number;
+        };
+        /** PhotoResponse */
+        PhotoResponse: {
+            /**
+             * Server Time
+             * Format: date-time
+             * @description Server clock at response time (ISO-8601 UTC).
+             */
+            server_time: string;
+            /**
+             * Photo Id
+             * Format: uuid
+             */
+            photo_id: string;
+        };
+        /** PredictedPart */
+        PredictedPart: {
+            /** Description */
+            description: string;
+            /** Part Code */
+            part_code?: string | null;
+            /** Qty */
+            qty: number;
+            /** Likelihood */
+            likelihood?: number | null;
+        };
+        /** RankedCandidate */
+        RankedCandidate: {
+            /**
+             * Contractor Id
+             * Format: uuid
+             */
+            contractor_id: string;
+            /** Name */
+            name: string;
+            /** Rank */
+            rank: number;
+            /** Match Score */
+            match_score: number;
+            /** Match Reason */
+            match_reason: string;
+            state: components["schemas"]["CandidateState"];
         };
         /** ReadyChecks */
         ReadyChecks: {
@@ -86,16 +892,170 @@ export interface components {
         /** ReadyResponse */
         ReadyResponse: {
             /**
+             * Server Time
+             * Format: date-time
+             * @description Server clock at response time (ISO-8601 UTC).
+             */
+            server_time: string;
+            /**
              * Status
              * @constant
              */
             status: "ready";
             checks: components["schemas"]["ReadyChecks"];
+        };
+        /**
+         * Role
+         * @enum {string}
+         */
+        Role: "contractor" | "owner" | "fm";
+        /**
+         * ScheduleResponse
+         * @description `GET /contractor/{cid}/schedule` and `GET /me/schedule` (FR-2.1, FR-2.2).
+         *
+         *     `offers` sorted by soonest `sla_deadline`; `active` by most recent `last_advanced_at`.
+         */
+        ScheduleResponse: {
             /**
              * Server Time
              * Format: date-time
+             * @description Server clock at response time (ISO-8601 UTC).
              */
             server_time: string;
+            /** Offers */
+            offers: components["schemas"]["OfferSummary"][];
+            /** Active */
+            active: components["schemas"]["OfferSummary"][];
+            /**
+             * Voice Bookings
+             * @description Always empty in v1 (FR-2.1).
+             */
+            voice_bookings: components["schemas"]["OfferSummary"][];
+        };
+        /** SiteRef */
+        SiteRef: {
+            /** Name */
+            name: string;
+            /** Location */
+            location: string;
+        };
+        /**
+         * Teaser
+         * @description Packet teaser on the card: "Likely: X · NN% match" (FR-2.3). Empty when no packet.
+         */
+        Teaser: {
+            /** Likely Cause */
+            likely_cause?: string | null;
+            /** Confidence */
+            confidence?: number | null;
+        };
+        /**
+         * TransitionAction
+         * @enum {string}
+         */
+        TransitionAction: "advance" | "undo";
+        /**
+         * TransitionRequest
+         * @description `advance` needs `stage`. `undo` corrects `corrects_event_id`, or the latest advance (H-4).
+         */
+        TransitionRequest: {
+            action: components["schemas"]["TransitionAction"];
+            stage?: components["schemas"]["LifecycleStage"] | null;
+            /** Corrects Event Id */
+            corrects_event_id?: string | null;
+        };
+        /** TransitionResponse */
+        TransitionResponse: {
+            /**
+             * Server Time
+             * Format: date-time
+             * @description Server clock at response time (ISO-8601 UTC).
+             */
+            server_time: string;
+            lifecycle_stage: components["schemas"]["LifecycleStage"] | null;
+            /**
+             * Event Id
+             * Format: uuid
+             */
+            event_id: string;
+            /** History */
+            history: components["schemas"]["LifecycleEvent"][];
+        };
+        /**
+         * UserProfile
+         * @description The signed-in user. `contractor_id` is present only for the contractor role (FR-1.4).
+         */
+        UserProfile: {
+            /**
+             * User Id
+             * Format: uuid
+             */
+            user_id: string;
+            /** Name */
+            name: string;
+            role: components["schemas"]["Role"];
+            /**
+             * Tenant Id
+             * Format: uuid
+             */
+            tenant_id: string;
+            /** Contractor Id */
+            contractor_id?: string | null;
+            /** Company */
+            company?: string | null;
+        };
+        /**
+         * WoSource
+         * @description Where the work order came from. `voice` is the Voicequest seam (FR-2.1, D§14).
+         * @enum {string}
+         */
+        WoSource: "dispatch" | "voice";
+        /**
+         * WorkOrderDetail
+         * @description Contractor view (spec §5). Never includes `ranked_candidates` (FR-3.5).
+         */
+        WorkOrderDetail: {
+            /**
+             * Server Time
+             * Format: date-time
+             * @description Server clock at response time (ISO-8601 UTC).
+             */
+            server_time: string;
+            /**
+             * Wo Id
+             * Format: uuid
+             */
+            wo_id: string;
+            asset: components["schemas"]["AssetRef"];
+            site: components["schemas"]["SiteRef"];
+            /** Symptom */
+            symptom: string;
+            wo_source: components["schemas"]["WoSource"];
+            dispatch_state: components["schemas"]["DispatchState"];
+            lifecycle_stage?: components["schemas"]["LifecycleStage"] | null;
+            /** Sla Deadline */
+            sla_deadline?: string | null;
+            /**
+             * Match Score
+             * @description The caller's own match score, 0 to 1.
+             */
+            match_score: number;
+            /** Match Reason */
+            match_reason: string;
+            teaser: components["schemas"]["Teaser"];
+            /** Health Score */
+            health_score?: number | null;
+            failure_risk?: components["schemas"]["FailureRisk"] | null;
+            /** Last Advanced At */
+            last_advanced_at?: string | null;
+            decision?: components["schemas"]["Decision"] | null;
+            /** Pre Diagnostic Available */
+            pre_diagnostic_available: boolean;
+            packet?: components["schemas"]["Packet"] | null;
+            /** Lifecycle History */
+            lifecycle_history: components["schemas"]["LifecycleEvent"][];
+            /** Predicted Failure Code */
+            predicted_failure_code?: string | null;
         };
     };
     responses: never;
@@ -146,6 +1106,1046 @@ export interface operations {
             };
             /** @description A dependency is unavailable */
             503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    login: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoginResponse"];
+                };
+            };
+            /** @description UNAUTHENTICATED (or INVALID_CREDENTIALS on login): missing, invalid or revoked token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description VALIDATION_ERROR, or IDEMPOTENCY_KEY_REUSED for a reused key with a different body */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description RATE_LIMITED */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description NOT_IMPLEMENTED: route is declared in the contract but not built yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    logout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description UNAUTHENTICATED (or INVALID_CREDENTIALS on login): missing, invalid or revoked token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description NOT_IMPLEMENTED: route is declared in the contract but not built yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    get_me: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MeResponse"];
+                };
+            };
+            /** @description UNAUTHENTICATED (or INVALID_CREDENTIALS on login): missing, invalid or revoked token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description NOT_IMPLEMENTED: route is declared in the contract but not built yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    get_contractor_schedule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cid: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleResponse"];
+                };
+            };
+            /** @description UNAUTHENTICATED (or INVALID_CREDENTIALS on login): missing, invalid or revoked token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description FORBIDDEN: the caller may not perform this action */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description NOT_FOUND: the target does not exist or is not visible to the caller */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description VALIDATION_ERROR, or IDEMPOTENCY_KEY_REUSED for a reused key with a different body */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description NOT_IMPLEMENTED: route is declared in the contract but not built yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    get_my_schedule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleResponse"];
+                };
+            };
+            /** @description UNAUTHENTICATED (or INVALID_CREDENTIALS on login): missing, invalid or revoked token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description FORBIDDEN: the caller may not perform this action */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description NOT_FOUND: the target does not exist or is not visible to the caller */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description VALIDATION_ERROR, or IDEMPOTENCY_KEY_REUSED for a reused key with a different body */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description NOT_IMPLEMENTED: route is declared in the contract but not built yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    accept_offer: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Client-generated key (e.g. a UUID) that makes a retry return the original result. Scoped to the caller, the route and its target. Reusing a key with a different body returns 422 IDEMPOTENCY_KEY_REUSED. */
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                cid: string;
+                wo: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkOrderDetail"];
+                };
+            };
+            /** @description UNAUTHENTICATED (or INVALID_CREDENTIALS on login): missing, invalid or revoked token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description FORBIDDEN: the caller may not perform this action */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description NOT_FOUND: the target does not exist or is not visible to the caller */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict: OFFER_UNAVAILABLE, INVALID_TRANSITION or ALREADY_COMPLETED */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description VALIDATION_ERROR, or IDEMPOTENCY_KEY_REUSED for a reused key with a different body */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description NOT_IMPLEMENTED: route is declared in the contract but not built yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    accept_my_offer: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Client-generated key (e.g. a UUID) that makes a retry return the original result. Scoped to the caller, the route and its target. Reusing a key with a different body returns 422 IDEMPOTENCY_KEY_REUSED. */
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                wo: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkOrderDetail"];
+                };
+            };
+            /** @description UNAUTHENTICATED (or INVALID_CREDENTIALS on login): missing, invalid or revoked token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description FORBIDDEN: the caller may not perform this action */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description NOT_FOUND: the target does not exist or is not visible to the caller */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict: OFFER_UNAVAILABLE, INVALID_TRANSITION or ALREADY_COMPLETED */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description VALIDATION_ERROR, or IDEMPOTENCY_KEY_REUSED for a reused key with a different body */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description NOT_IMPLEMENTED: route is declared in the contract but not built yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    decline_offer: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Client-generated key (e.g. a UUID) that makes a retry return the original result. Scoped to the caller, the route and its target. Reusing a key with a different body returns 422 IDEMPOTENCY_KEY_REUSED. */
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                cid: string;
+                wo: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeclineRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description UNAUTHENTICATED (or INVALID_CREDENTIALS on login): missing, invalid or revoked token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description FORBIDDEN: the caller may not perform this action */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description NOT_FOUND: the target does not exist or is not visible to the caller */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict: OFFER_UNAVAILABLE, INVALID_TRANSITION or ALREADY_COMPLETED */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description VALIDATION_ERROR, or IDEMPOTENCY_KEY_REUSED for a reused key with a different body */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description NOT_IMPLEMENTED: route is declared in the contract but not built yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    decline_my_offer: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Client-generated key (e.g. a UUID) that makes a retry return the original result. Scoped to the caller, the route and its target. Reusing a key with a different body returns 422 IDEMPOTENCY_KEY_REUSED. */
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                wo: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeclineRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description UNAUTHENTICATED (or INVALID_CREDENTIALS on login): missing, invalid or revoked token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description FORBIDDEN: the caller may not perform this action */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description NOT_FOUND: the target does not exist or is not visible to the caller */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict: OFFER_UNAVAILABLE, INVALID_TRANSITION or ALREADY_COMPLETED */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description VALIDATION_ERROR, or IDEMPOTENCY_KEY_REUSED for a reused key with a different body */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description NOT_IMPLEMENTED: route is declared in the contract but not built yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    get_workorder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                wo: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkOrderDetail"] | components["schemas"]["OwnerWorkOrderDetail"];
+                };
+            };
+            /** @description UNAUTHENTICATED (or INVALID_CREDENTIALS on login): missing, invalid or revoked token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description FORBIDDEN: the caller may not perform this action */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description NOT_FOUND: the target does not exist or is not visible to the caller */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description VALIDATION_ERROR, or IDEMPOTENCY_KEY_REUSED for a reused key with a different body */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description NOT_IMPLEMENTED: route is declared in the contract but not built yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    transition_workorder: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Client-generated key (e.g. a UUID) that makes a retry return the original result. Scoped to the caller, the route and its target. Reusing a key with a different body returns 422 IDEMPOTENCY_KEY_REUSED. */
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                wo: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TransitionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransitionResponse"];
+                };
+            };
+            /** @description UNAUTHENTICATED (or INVALID_CREDENTIALS on login): missing, invalid or revoked token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description FORBIDDEN: the caller may not perform this action */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description NOT_FOUND: the target does not exist or is not visible to the caller */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict: OFFER_UNAVAILABLE, INVALID_TRANSITION or ALREADY_COMPLETED */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description VALIDATION_ERROR, or IDEMPOTENCY_KEY_REUSED for a reused key with a different body */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description NOT_IMPLEMENTED: route is declared in the contract but not built yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    upload_workorder_photo: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Client-generated key (e.g. a UUID) that makes a retry return the original result. Scoped to the caller, the route and its target. Reusing a key with a different body returns 422 IDEMPOTENCY_KEY_REUSED. */
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                wo: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /**
+                     * Format: binary
+                     * @description One JPEG, PNG or HEIC image, at most 10 MB.
+                     */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PhotoResponse"];
+                };
+            };
+            /** @description UNAUTHENTICATED (or INVALID_CREDENTIALS on login): missing, invalid or revoked token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description FORBIDDEN: the caller may not perform this action */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description NOT_FOUND: the target does not exist or is not visible to the caller */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description PAYLOAD_TOO_LARGE */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description UNSUPPORTED_MEDIA_TYPE */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description VALIDATION_ERROR, or IDEMPOTENCY_KEY_REUSED for a reused key with a different body */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description NOT_IMPLEMENTED: route is declared in the contract but not built yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    complete_workorder: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Client-generated key (e.g. a UUID) that makes a retry return the original result. Scoped to the caller, the route and its target. Reusing a key with a different body returns 422 IDEMPOTENCY_KEY_REUSED. */
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                wo: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompletionReport"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompletionResponse"];
+                };
+            };
+            /** @description UNAUTHENTICATED (or INVALID_CREDENTIALS on login): missing, invalid or revoked token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description FORBIDDEN: the caller may not perform this action */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description NOT_FOUND: the target does not exist or is not visible to the caller */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict: OFFER_UNAVAILABLE, INVALID_TRANSITION or ALREADY_COMPLETED */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description VALIDATION_ERROR, or IDEMPOTENCY_KEY_REUSED for a reused key with a different body */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description NOT_IMPLEMENTED: route is declared in the contract but not built yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    list_failure_codes: {
+        parameters: {
+            query?: {
+                subtype?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FailureCodeList"];
+                };
+            };
+            /** @description UNAUTHENTICATED (or INVALID_CREDENTIALS on login): missing, invalid or revoked token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description VALIDATION_ERROR, or IDEMPOTENCY_KEY_REUSED for a reused key with a different body */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description NOT_IMPLEMENTED: route is declared in the contract but not built yet */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    create_dispatch_workorder: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Client-generated key (e.g. a UUID) that makes a retry return the original result. Scoped to the caller, the route and its target. Reusing a key with a different body returns 422 IDEMPOTENCY_KEY_REUSED. */
+                "Idempotency-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DispatchCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DispatchCreateResponse"];
+                };
+            };
+            /** @description UNAUTHENTICATED (or INVALID_CREDENTIALS on login): missing, invalid or revoked token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description FORBIDDEN: the caller may not perform this action */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description NOT_FOUND: the target does not exist or is not visible to the caller */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description VALIDATION_ERROR, or IDEMPOTENCY_KEY_REUSED for a reused key with a different body */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description NOT_IMPLEMENTED: route is declared in the contract but not built yet */
+            501: {
                 headers: {
                     [name: string]: unknown;
                 };
