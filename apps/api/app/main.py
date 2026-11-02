@@ -7,6 +7,7 @@ from app.clock import clock
 from app.core.errors import install_error_handlers
 from app.core.logging import configure_logging
 from app.core.middleware import BodySizeLimitMiddleware, RequestContextMiddleware
+from app.media import routes as media_routes
 from app.routes import auth, catalog, contractor, dispatch, health, workorders
 from app.settings import TEST_CLOCK_ENVS, Settings, get_settings
 
@@ -26,6 +27,7 @@ def create_app(settings: Settings | None = None, *, schema_only: bool = False) -
     install_error_handlers(app)
     for module in (health, auth, contractor, workorders, catalog, dispatch):
         app.include_router(module.router)
+    app.include_router(media_routes.router)
     if schema_only:
         return app
 

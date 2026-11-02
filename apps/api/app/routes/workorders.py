@@ -7,7 +7,6 @@ from app.contract.workorders import (
     CompletionReport,
     CompletionResponse,
     OwnerWorkOrderDetail,
-    PhotoResponse,
     TransitionRequest,
     TransitionResponse,
     WorkOrderDetail,
@@ -43,41 +42,6 @@ def transition_workorder(
     target: Authorized, body: TransitionRequest, idempotency_key: IdempotencyKeyHeader = None
 ) -> JSONResponse:
     """Advance EN_ROUTE → ARRIVED, or undo via a CORRECTION event (FR-6.1, FR-6.3, FR-6.4)."""
-    return not_implemented()
-
-
-@router.post(
-    "/workorders/{wo}/photos",
-    action=Action.PHOTO,
-    operation_id="upload_workorder_photo",
-    status_code=201,
-    response_model=PhotoResponse,
-    responses=error_responses(401, 403, 404, 413, 415, 422, 501),
-    openapi_extra={
-        "requestBody": {
-            "required": True,
-            "content": {
-                "multipart/form-data": {
-                    "schema": {
-                        "type": "object",
-                        "required": ["file"],
-                        "properties": {
-                            "file": {
-                                "type": "string",
-                                "format": "binary",
-                                "description": "One JPEG, PNG or HEIC image, at most 10 MB.",
-                            }
-                        },
-                    }
-                }
-            },
-        }
-    },
-)
-def upload_workorder_photo(
-    target: Authorized, idempotency_key: IdempotencyKeyHeader = None
-) -> JSONResponse:
-    """Upload one completion photo (FR-7.7). The body is streamed and parsed by the handler."""
     return not_implemented()
 
 

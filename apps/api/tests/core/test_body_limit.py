@@ -51,8 +51,11 @@ def test_small_json_and_large_multipart_pass_the_limit() -> None:
     c = TestClient(authed_app())
     ok = c.post("/v1/workorders/" + WO + "/transition", json={"action": "advance"})
     assert ok.status_code == 501  # reaches the stub
+    # A multipart body well over the JSON limit still reaches the photo handler: it is the handler
+    # (not the middleware's 413) that answers, here rejecting the second file part with 422.
+    big = b"\xff\xd8" + b"0" * (2 * JSON_BODY_LIMIT)
     photo = c.post(
         f"/v1/workorders/{WO}/photos",
-        files={"file": ("p.jpg", b"\xff\xd8" + b"0" * (2 * JSON_BODY_LIMIT), "image/jpeg")},
+        files=[("file", ("p.jpg", big, "image/jpeg")), ("file", ("q.jpg", b"x", "image/jpeg"))],
     )
-    assert photo.status_code == 501
+    assert photo.status_code == 422

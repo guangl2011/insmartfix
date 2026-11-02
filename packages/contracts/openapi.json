@@ -1018,154 +1018,6 @@
         }
       }
     },
-    "/v1/workorders/{wo}/photos": {
-      "post": {
-        "tags": [
-          "workorders"
-        ],
-        "summary": "Upload Workorder Photo",
-        "description": "Upload one completion photo (FR-7.7). The body is streamed and parsed by the handler.",
-        "operationId": "upload_workorder_photo",
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "wo",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Wo"
-            }
-          },
-          {
-            "name": "Idempotency-Key",
-            "in": "header",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "pattern": "^[A-Za-z0-9._:-]{8,128}$"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Client-generated key (e.g. a UUID) that makes a retry return the original result. Scoped to the caller, the route and its target. Reusing a key with a different body returns 422 IDEMPOTENCY_KEY_REUSED.",
-              "title": "Idempotency-Key"
-            },
-            "description": "Client-generated key (e.g. a UUID) that makes a retry return the original result. Scoped to the caller, the route and its target. Reusing a key with a different body returns 422 IDEMPOTENCY_KEY_REUSED."
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PhotoResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "UNAUTHENTICATED (or INVALID_CREDENTIALS on login): missing, invalid or revoked token",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "FORBIDDEN: the caller may not perform this action",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "NOT_FOUND: the target does not exist or is not visible to the caller",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            }
-          },
-          "413": {
-            "description": "PAYLOAD_TOO_LARGE",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            }
-          },
-          "415": {
-            "description": "UNSUPPORTED_MEDIA_TYPE",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "VALIDATION_ERROR, or IDEMPOTENCY_KEY_REUSED for a reused key with a different body",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            }
-          },
-          "501": {
-            "description": "NOT_IMPLEMENTED: route is declared in the contract but not built yet",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "file"
-                ],
-                "properties": {
-                  "file": {
-                    "type": "string",
-                    "format": "binary",
-                    "description": "One JPEG, PNG or HEIC image, at most 10 MB."
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/v1/workorders/{wo}/complete": {
       "post": {
         "tags": [
@@ -1451,6 +1303,144 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/workorders/{wo}/photos": {
+      "post": {
+        "tags": [
+          "workorders"
+        ],
+        "summary": "Upload Workorder Photo",
+        "description": "Upload one completion photo (FR-7.7). The body is streamed and parsed by the handler.",
+        "operationId": "upload_workorder_photo",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "wo",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Wo"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9._:-]{8,128}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Client-generated key (e.g. a UUID) that makes a retry return the original result. Scoped to the caller, the route and its target. Reusing a key with a different body returns 422 IDEMPOTENCY_KEY_REUSED.",
+              "title": "Idempotency-Key"
+            },
+            "description": "Client-generated key (e.g. a UUID) that makes a retry return the original result. Scoped to the caller, the route and its target. Reusing a key with a different body returns 422 IDEMPOTENCY_KEY_REUSED."
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhotoResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED (or INVALID_CREDENTIALS on login): missing, invalid or revoked token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN: the caller may not perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND: the target does not exist or is not visible to the caller",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "PAYLOAD_TOO_LARGE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "UNSUPPORTED_MEDIA_TYPE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "VALIDATION_ERROR, or IDEMPOTENCY_KEY_REUSED for a reused key with a different body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "One JPEG, PNG or HEIC image, at most 10 MB."
+                  }
                 }
               }
             }

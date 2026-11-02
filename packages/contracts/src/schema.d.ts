@@ -265,26 +265,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/workorders/{wo}/photos": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Upload Workorder Photo
-         * @description Upload one completion photo (FR-7.7). The body is streamed and parsed by the handler.
-         */
-        post: operations["upload_workorder_photo"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/v1/workorders/{wo}/complete": {
         parameters: {
             query?: never;
@@ -339,6 +319,26 @@ export interface paths {
          * @description Create a WO with ranked candidates; offers rank 1 with `sla_deadline = now + sla_minutes`.
          */
         post: operations["create_dispatch_workorder"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/workorders/{wo}/photos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload Workorder Photo
+         * @description Upload one completion photo (FR-7.7). The body is streamed and parsed by the handler.
+         */
+        post: operations["upload_workorder_photo"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1773,104 +1773,6 @@ export interface operations {
             };
         };
     };
-    upload_workorder_photo: {
-        parameters: {
-            query?: never;
-            header?: {
-                /** @description Client-generated key (e.g. a UUID) that makes a retry return the original result. Scoped to the caller, the route and its target. Reusing a key with a different body returns 422 IDEMPOTENCY_KEY_REUSED. */
-                "Idempotency-Key"?: string | null;
-            };
-            path: {
-                wo: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "multipart/form-data": {
-                    /**
-                     * Format: binary
-                     * @description One JPEG, PNG or HEIC image, at most 10 MB.
-                     */
-                    file: string;
-                };
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PhotoResponse"];
-                };
-            };
-            /** @description UNAUTHENTICATED (or INVALID_CREDENTIALS on login): missing, invalid or revoked token */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description FORBIDDEN: the caller may not perform this action */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description NOT_FOUND: the target does not exist or is not visible to the caller */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description PAYLOAD_TOO_LARGE */
-            413: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description UNSUPPORTED_MEDIA_TYPE */
-            415: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description VALIDATION_ERROR, or IDEMPOTENCY_KEY_REUSED for a reused key with a different body */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description NOT_IMPLEMENTED: route is declared in the contract but not built yet */
-            501: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-        };
-    };
     complete_workorder: {
         parameters: {
             query?: never;
@@ -2039,6 +1941,95 @@ export interface operations {
             };
             /** @description NOT_FOUND: the target does not exist or is not visible to the caller */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description VALIDATION_ERROR, or IDEMPOTENCY_KEY_REUSED for a reused key with a different body */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    upload_workorder_photo: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Client-generated key (e.g. a UUID) that makes a retry return the original result. Scoped to the caller, the route and its target. Reusing a key with a different body returns 422 IDEMPOTENCY_KEY_REUSED. */
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                wo: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /**
+                     * Format: binary
+                     * @description One JPEG, PNG or HEIC image, at most 10 MB.
+                     */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PhotoResponse"];
+                };
+            };
+            /** @description UNAUTHENTICATED (or INVALID_CREDENTIALS on login): missing, invalid or revoked token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description FORBIDDEN: the caller may not perform this action */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description NOT_FOUND: the target does not exist or is not visible to the caller */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description PAYLOAD_TOO_LARGE */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description UNSUPPORTED_MEDIA_TYPE */
+            415: {
                 headers: {
                     [name: string]: unknown;
                 };
