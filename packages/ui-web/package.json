@@ -2,7 +2,7 @@
   "name": "@insmartfix/ui-web",
   "version": "0.0.0",
   "private": true,
-  "description": "Web component kit (design §7.4). Empty at M0; populated in M4.",
+  "description": "Web component kit (design \u00a77.4). Empty at M0; populated in M4.",
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
@@ -10,7 +10,7 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "lint": "eslint .",
+    "lint": "eslint . && node ../tokens/eslint/check-css.mjs .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
     "test:coverage": "vitest run --passWithNoTests --coverage"

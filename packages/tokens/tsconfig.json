@@ -1,5 +1,5 @@
 {
   "extends": "../../tsconfig.base.json",
-  "compilerOptions": { "types": ["node"], "noEmit": true },
-  "include": ["src", "build", "scripts", "test", "vitest.config.ts"]
+  "compilerOptions": { "types": ["node"], "noEmit": true, "allowJs": true, "checkJs": false },
+  "include": ["src", "build", "eslint", "scripts", "test", "vitest.config.ts"]
 }

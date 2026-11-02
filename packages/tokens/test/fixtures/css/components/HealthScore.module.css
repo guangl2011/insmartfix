@@ -1,0 +1,4 @@
+.score {
+  color: var(--status-critical);
+  border-color: #dc2626;
+}

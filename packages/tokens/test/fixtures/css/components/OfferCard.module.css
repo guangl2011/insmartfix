@@ -1,0 +1,5 @@
+.card {
+  border-color: var(--status-high);
+  color: #e0a106;
+  background: var(--surface-2);
+}
