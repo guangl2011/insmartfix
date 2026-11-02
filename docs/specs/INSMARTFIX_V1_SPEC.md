@@ -1,6 +1,6 @@
 # InsmartFix v1 — Product & Technical Specification
 
-**Version:** 1.0 · **Date:** 2026-11-02 · **Status:** ✅ **Approved at G1 Spec Review** (2026-11-02, product owner, all D1–D10 recommendations accepted) · **v1.1 delta (D11–D12, C-1–C-4): ⏳ awaiting G1 delta review**
+**Version:** 1.1 · **Date:** 2026-11-02 · **Status:** ✅ **Approved at G1 Spec Review** (2026-11-02, product owner, all D1–D10 recommendations accepted) · **v1.1 delta (D11–D12, C-1–C-4): ✅ approved at G1 delta review (2026-11-02)**
 **Source of truth for *what/why/feel*:** [`docs/design/INSMARTFIX_PRODUCT_DESIGN.md`](../design/INSMARTFIX_PRODUCT_DESIGN.md) (v1.0) and [`docs/design/COLOR_LANGUAGE.md`](../design/COLOR_LANGUAGE.md) (v1.3).
 **This doc adds:** testable requirements, the API contract, architecture, and the decisions the design left open. Section references like "D§6.2" point into the design doc.
 

@@ -1,6 +1,6 @@
 # InsmartFix v1 — Test Plan & Test Environments
 
-**Version:** 1.0 · **Date:** 2026-11-02 · **Status:** ✅ Approved at G1 with the spec; executed in S4–S5; results judged at **G2 Test Review**. · v1.1: D10 security test IDs added (T-AUTH-9…18, T-DISP-4, T-MEM-2, T-LIFE-5, T-IDEM-1, T-COMP-8/9, T-PHOTO-3); T-AUTH-13 and the D12 part of T-IDEM-1 depend on the G1 delta review.
+**Version:** 1.0 · **Date:** 2026-11-02 · **Status:** ✅ Approved at G1 with the spec; executed in S4–S5; results judged at **G2 Test Review**. · v1.1: D10 security test IDs added (T-AUTH-9…18, T-DISP-4, T-MEM-2, T-LIFE-5, T-IDEM-1, T-COMP-8/9, T-PHOTO-3); D11/D12 approved at G1 delta review, so T-AUTH-13 and T-IDEM-1 are in full scope.
 **Traces to:** [`docs/specs/INSMARTFIX_V1_SPEC.md`](../specs/INSMARTFIX_V1_SPEC.md) (FR/NFR IDs).
 
 ---
