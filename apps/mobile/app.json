@@ -10,13 +10,30 @@
     "ios": {
       "bundleIdentifier": "ai.insmart.fix",
       "supportsTablet": false,
-      "infoPlist": { "ITSAppUsesNonExemptEncryption": false }
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "ai.insmart.fix",
       "edgeToEdgeEnabled": true
     },
-    "plugins": ["expo-router"],
-    "experiments": { "typedRoutes": false }
+    "plugins": [
+      "expo-router",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "16.4"
+          },
+          "android": {
+            "minSdkVersion": 29
+          }
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": false
+    }
   }
 }

@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { getMobileConfig } from '@/src/config';
-import { useTheme } from '@/src/useTheme';
+import { useTheme } from '@/src/theme';
 
 /** M0 placeholder screen. Replaced by the Offer Inbox in M5. */
 export default function HomeScreen() {
