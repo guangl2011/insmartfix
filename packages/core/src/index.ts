@@ -9,4 +9,5 @@ export * from './drafts';
 export * from './sla';
 export * from './ordering';
 export * from './completion';
+export * from './queue';
 export * from './inbox';
