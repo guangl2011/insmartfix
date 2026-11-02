@@ -18,6 +18,7 @@ concurrency:
 env:
   NODE_VERSION: '22'
   MAESTRO_VERSION: '2.12.1'
+  MAESTRO_CLI_NO_ANALYTICS: '1'
   TURBO_TELEMETRY_DISABLED: '1'
   NEXT_TELEMETRY_DISABLED: '1'
   EXPO_NO_TELEMETRY: '1'
@@ -198,6 +199,10 @@ jobs:
           curl -fsSL "https://get.maestro.mobile.dev" | bash
           echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
       - name: Maestro on the simulator
+        env:
+          # The XCTest driver needs longer than Maestro's default to start on a cold hosted runner
+          # (first nightly failed with "iOS driver not ready in time").
+          MAESTRO_DRIVER_STARTUP_TIMEOUT: '300000'
         run: maestro test apps/mobile/e2e --format junit --output maestro-ios.xml
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
