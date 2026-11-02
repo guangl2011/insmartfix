@@ -5,6 +5,8 @@ describe('getMobileConfig', () => {
     expect(getMobileConfig({})).toEqual({
       dataSource: 'mock',
       apiBaseUrl: 'http://localhost:8000',
+      sentryDsn: null,
+      mockScenarios: '',
     });
   });
 
@@ -14,7 +16,21 @@ describe('getMobileConfig', () => {
         EXPO_PUBLIC_DATA_SOURCE: 'LIVE',
         EXPO_PUBLIC_API_BASE_URL: 'https://api.example.test/',
       }),
-    ).toEqual({ dataSource: 'live', apiBaseUrl: 'https://api.example.test' });
+    ).toEqual({
+      dataSource: 'live',
+      apiBaseUrl: 'https://api.example.test',
+      sentryDsn: null,
+      mockScenarios: '',
+    });
+  });
+
+  it('reads the optional crash-reporting DSN and mock scenarios', () => {
+    expect(
+      getMobileConfig({
+        EXPO_PUBLIC_SENTRY_DSN: ' https://k@o.example/1 ',
+        EXPO_PUBLIC_MOCK_SCENARIOS: 'race',
+      }),
+    ).toMatchObject({ sentryDsn: 'https://k@o.example/1', mockScenarios: 'race' });
   });
 });
 

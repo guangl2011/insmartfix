@@ -1,14 +1,14 @@
-# Maestro launch smoke (M0). Feature flows (T-* IDs, TEST_PLAN §6) are added in M5.
+# Launch smoke: the app cold-starts into the shell (DATA_SOURCE=mock in the nightly job).
 # Run: maestro test apps/mobile/e2e   (needs a booted emulator/simulator with the app installed)
 appId: ai.insmart.fix
-name: M0 launch smoke
+name: Launch smoke
 tags:
   - smoke
 ---
 - launchApp:
     clearState: true
 - extendedWaitUntil:
-    visible: 'InsmartFix'
+    visible:
+      id: 'nav-inbox'
     timeout: 60000
-- assertVisible: 'Contractor field app — scaffold.'
-- takeScreenshot: m0-launch
+- takeScreenshot: launch
