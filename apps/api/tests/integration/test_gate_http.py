@@ -124,7 +124,7 @@ def test_T_AUTH_15_owner_on_unknown_or_cross_tenant_cid_gets_identical_404(
     assert a.status_code == b.status_code == 404
     assert _body(a) == _body(b)
     own = setup.midtown.contractors["marco"].contractor_id
-    assert api.get(f"/v1/contractor/{own}/schedule", headers=owner.auth).status_code == 501
+    assert api.get(f"/v1/contractor/{own}/schedule", headers=owner.auth).status_code == 200
 
 
 def test_T_AUTH_15_contractor_404s_are_identical_for_every_wo_action(
@@ -185,8 +185,8 @@ def test_T_AUTH_16_owner_cannot_act_as_contractor(
 
 def test_gate_allows_the_offeree_through_to_the_handler(api: TestClient, setup: Setup) -> None:
     marco = setup.midtown.contractors["marco"]
-    for path in (f"/v1/workorders/{setup.offer_wo}", "/v1/me/schedule"):
-        assert api.get(path, headers=marco.auth).status_code == 501
+    assert api.get(f"/v1/workorders/{setup.offer_wo}", headers=marco.auth).status_code == 501
+    assert api.get("/v1/me/schedule", headers=marco.auth).status_code == 200
     res = api.post(f"/v1/me/accept/{setup.offer_wo}", headers=marco.auth)
     assert res.status_code == 501
     # Offeree may not do bound-only work yet (row 13).

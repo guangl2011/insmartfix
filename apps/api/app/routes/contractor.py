@@ -1,22 +1,29 @@
-"""Contractor schedule + accept/decline (spec §5; FR-1.4, FR-2.1, FR-4). Stubs until M1-T7/M1-T8.
+"""Contractor schedule + accept/decline (spec §5; FR-1.4, FR-2.1, FR-4). Accept/decline: M1-T8.
 
 Each `/contractor/{cid}/…` route has a `/me/…` alias that resolves `contractor_id` from the token.
 """
 
-from fastapi import Response
-from fastapi.responses import JSONResponse
+from typing import Annotated
 
+from fastapi import Depends, Response
+from fastapi.responses import JSONResponse
+from sqlalchemy.orm import Session
+
+from app.clock import now
 from app.contract.common import IdempotencyKeyHeader, error_responses
 from app.contract.schedule import DeclineRequest, ScheduleResponse
 from app.contract.workorders import WorkOrderDetail
-from app.identity_gate.deps import Authorized, gated_router
+from app.db.session import get_db
+from app.dispatch.schedule import build_schedule
+from app.identity_gate.deps import Authorized, AuthorizedTarget, gated_router
 from app.identity_gate.policy import Action
 from app.routes import API_PREFIX
 from app.routes._stub import not_implemented
 
+DbSession = Annotated[Session, Depends(get_db)]
 router = gated_router(prefix=API_PREFIX, tags=["contractor"])
 
-SCHEDULE_ERRORS = error_responses(401, 403, 404, 422, 501)
+SCHEDULE_ERRORS = error_responses(401, 403, 404, 422)
 ACCEPT_ERRORS = error_responses(401, 403, 404, 409, 422, 501)
 
 
@@ -27,9 +34,9 @@ ACCEPT_ERRORS = error_responses(401, 403, 404, 409, 422, 501)
     response_model=ScheduleResponse,
     responses=SCHEDULE_ERRORS,
 )
-def get_contractor_schedule(target: Authorized) -> JSONResponse:
+def get_contractor_schedule(target: Authorized, db: DbSession) -> ScheduleResponse:
     """Offers + active jobs for one contractor (own `cid`, or owner/FM in the same tenant)."""
-    return not_implemented()
+    return _schedule(target, db)
 
 
 @router.get(
@@ -39,9 +46,14 @@ def get_contractor_schedule(target: Authorized) -> JSONResponse:
     response_model=ScheduleResponse,
     responses=SCHEDULE_ERRORS,
 )
-def get_my_schedule(target: Authorized) -> JSONResponse:
+def get_my_schedule(target: Authorized, db: DbSession) -> ScheduleResponse:
     """Alias of the schedule for the caller's own `contractor_id` (FR-1.4)."""
-    return not_implemented()
+    return _schedule(target, db)
+
+
+def _schedule(target: AuthorizedTarget, db: Session) -> ScheduleResponse:
+    assert target.contractor_id is not None  # noqa: S101 — the gate resolved it (rows 5, 7)
+    return build_schedule(db, target.contractor_id, now())
 
 
 @router.post(

@@ -1278,15 +1278,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
-            /** @description NOT_IMPLEMENTED: route is declared in the contract but not built yet */
-            501: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
         };
     };
     get_my_schedule: {
@@ -1336,15 +1327,6 @@ export interface operations {
             };
             /** @description VALIDATION_ERROR, or IDEMPOTENCY_KEY_REUSED for a reused key with a different body */
             422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description NOT_IMPLEMENTED: route is declared in the contract but not built yet */
-            501: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -102,24 +102,26 @@ def make_offer(
     current: Person | None = None,
     deadline: datetime | None = None,
     sla_minutes: int = 15,
+    responded_at: datetime | None = None,
+    symptom: str = "Discharge air too warm",
 ) -> uuid.UUID:
     """A WO with ranked candidates `[(person, candidate_state), ...]` and a dispatch row."""
     at = wall_now()
     deadline = deadline or at + timedelta(minutes=5)
     wo = _one(
         conn,
-        "INSERT INTO workorders (tenant_id, asset_id, symptom) "
-        "VALUES (:t, :a, 'Discharge air too warm') RETURNING id",
+        "INSERT INTO workorders (tenant_id, asset_id, symptom) VALUES (:t, :a, :s) RETURNING id",
         t=tenant.tenant_id,
         a=tenant.asset_id,
+        s=symptom,
     )
     for rank, (p, cstate) in enumerate(candidates, start=1):
         offered = cstate != "QUEUED"
         conn.execute(
             text(
                 "INSERT INTO dispatch_candidates (wo_id, contractor_id, tenant_id, rank, "
-                "match_score, match_reason, state, offered_at, sla_deadline) "
-                "VALUES (:w, :c, :t, :r, 0.8, 'Nearby', :s, :o, :d)"
+                "match_score, match_reason, state, offered_at, sla_deadline, responded_at) "
+                "VALUES (:w, :c, :t, :r, 0.8, 'Nearby', :s, :o, :d, :ra)"
             ),
             {
                 "w": wo,
@@ -129,6 +131,7 @@ def make_offer(
                 "s": cstate,
                 "o": at if offered else None,
                 "d": deadline if offered else None,
+                "ra": responded_at if cstate in ("ACCEPTED", "DECLINED") else None,
             },
         )
     conn.execute(
@@ -146,3 +149,29 @@ def make_offer(
         },
     )
     return wo
+
+
+def add_event(
+    conn: Connection,
+    tenant: Tenant,
+    wo: uuid.UUID,
+    actor: Person,
+    *,
+    type_: str,
+    at: datetime,
+    stage: str | None = None,
+    corrects: uuid.UUID | None = None,
+) -> uuid.UUID:
+    return _one(
+        conn,
+        "INSERT INTO memory_events (tenant_id, asset_id, wo_id, type, stage, actor_user_id, at, "
+        "corrects_event_id) VALUES (:t, :a, :w, :ty, :st, :u, :at, :c) RETURNING id",
+        t=tenant.tenant_id,
+        a=tenant.asset_id,
+        w=wo,
+        ty=type_,
+        st=stage,
+        u=actor.user_id,
+        at=at,
+        c=corrects,
+    )
