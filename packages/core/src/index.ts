@@ -1,6 +1,8 @@
 /**
- * @insmartfix/core — pure, platform-free logic shared by apps/web and apps/mobile.
- * Intentionally empty at M0; M3 adds the SLA formatter, ordering, completion validation,
- * and the storage-adapter based draft store + offline queue (spec §4.1).
+ * @insmartfix/core — pure, platform-free logic shared by apps/web and apps/mobile (plan §4).
+ * Test adapters: `@insmartfix/core/testing`.
  */
 export const CORE_PACKAGE = '@insmartfix/core' as const;
+
+export * from './ports';
+export * from './drafts';
