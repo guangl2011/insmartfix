@@ -1,0 +1,6 @@
+<testsuites name="vitest tests"><testsuite name="test/drafts.test.ts">
+<testcase classname="test/drafts.test.ts" name="draft store &gt; T-COMP-3 draft survives a reload" time="0.001"></testcase>
+<testcase classname="test/drafts.test.ts" name="T-COMP-1 rejects missing failure code" time="0.001">
+</testcase>
+<testcase classname='test/drafts.test.ts' name='T-SKIP-1 is skipped'><skipped/></testcase>
+</testsuite></testsuites>

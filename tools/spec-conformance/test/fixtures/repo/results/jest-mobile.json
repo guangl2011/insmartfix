@@ -1,0 +1,17 @@
+{
+  "numFailedTests": 0,
+  "testResults": [
+    {
+      "name": "/w/apps/mobile/src/queue.test.tsx",
+      "assertionResults": [
+        {
+          "ancestorTitles": ["queue"],
+          "title": "T-COMP-5 flushes once on reconnect",
+          "fullName": "queue T-COMP-5 flushes once on reconnect",
+          "status": "passed"
+        },
+        { "ancestorTitles": [], "title": "pending one", "status": "pending" }
+      ]
+    }
+  ]
+}
