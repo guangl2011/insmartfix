@@ -60,6 +60,9 @@ services:
     # Same image as the API; runs migrations as a separate step (LAUNCH_PLAN §3).
     build:
       context: ../apps/api
+      # The `test` stage keeps app/testing for FAKE_CLOCK; deployed images use the default
+      # `runtime` stage, which deletes it (D10 H-7, T-AUTH-18).
+      target: test
     image: insmartfix-api:local
     command: ['alembic', 'upgrade', 'head']
     environment:
@@ -73,6 +76,9 @@ services:
   api:
     build:
       context: ../apps/api
+      # The `test` stage keeps app/testing for FAKE_CLOCK; deployed images use the default
+      # `runtime` stage, which deletes it (D10 H-7, T-AUTH-18).
+      target: test
     image: insmartfix-api:local
     environment: *api-env
     ports:

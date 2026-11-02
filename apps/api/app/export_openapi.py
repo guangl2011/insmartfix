@@ -8,7 +8,7 @@ from app.main import create_app
 
 
 def render() -> str:
-    return json.dumps(create_app().openapi(), indent=2, ensure_ascii=False) + "\n"
+    return json.dumps(create_app(schema_only=True).openapi(), indent=2, ensure_ascii=False) + "\n"
 
 
 def main(argv: list[str]) -> int:

@@ -13,7 +13,7 @@ WORKDIR /app
 COPY pyproject.toml uv.lock .python-version ./
 RUN uv sync --frozen --no-dev --no-install-project
 
-FROM ${PYTHON_IMAGE} AS runtime
+FROM ${PYTHON_IMAGE} AS base
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PATH=/opt/venv/bin:$PATH
@@ -23,11 +23,19 @@ COPY --from=deps /opt/venv /opt/venv
 COPY alembic.ini ./
 COPY alembic ./alembic
 COPY app ./app
-# D10 H-7: the test-clock package (app/testing, added in M1-T3) must not exist in any built image.
-# CI asserts `import app.testing` fails in this image (T-AUTH-18, image half).
-RUN rm -rf ./app/testing
-USER app
 EXPOSE 8000
 HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=6 \
   CMD ["python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/v1/healthz', timeout=2).status == 200 else 1)"]
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers"]
+CMD ["uvicorn", "--factory", "app.main:create_app", "--host", "0.0.0.0", "--port", "8000"]
+
+# local-stack / ci-ephemeral only (`target: test` in infra/docker-compose.yml): keeps app/testing so
+# FAKE_CLOCK=1 can mount POST /__test/clock (TEST_PLAN §3). Never pushed or deployed.
+FROM base AS test
+USER app
+
+# Default (last) stage: what staging and production run.
+# D10 H-7: the test-clock package (app/testing) must not exist in this image.
+# CI asserts `import app.testing` fails in it (T-AUTH-18, image half).
+FROM base AS runtime
+RUN rm -rf ./app/testing
+USER app

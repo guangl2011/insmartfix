@@ -12,6 +12,7 @@ from fastapi.testclient import TestClient
 
 from app.contract.common import ErrorCode, OfferUnavailableReason
 from app.main import create_app
+from tests.conftest import make_settings
 
 WO = "6f1c1d2e-0000-4000-8000-000000000001"
 CID = "6f1c1d2e-0000-4000-8000-000000000002"
@@ -71,7 +72,7 @@ BODIES: dict[str, dict[str, Any]] = {
 
 @pytest.fixture(scope="module")
 def spec() -> dict[str, Any]:
-    return create_app().openapi()
+    return create_app(schema_only=True).openapi()
 
 
 def _op(spec: dict[str, Any], method: str, path: str) -> dict[str, Any]:
@@ -204,7 +205,7 @@ def test_photo_upload_is_single_multipart_file(spec: dict[str, Any]) -> None:
 )
 def test_stubs_answer_501_envelope(method: str, path: str, op_id: str) -> None:
     url = path.replace("{cid}", CID).replace("{wo}", WO)
-    with TestClient(create_app()) as c:
+    with TestClient(create_app(make_settings())) as c:
         res = c.request(method, url, json=BODIES.get(op_id))
     assert res.status_code == 501, (op_id, res.text)
     body = res.json()
@@ -213,7 +214,7 @@ def test_stubs_answer_501_envelope(method: str, path: str, op_id: str) -> None:
 
 
 def test_validation_error_is_enveloped_and_does_not_echo_input() -> None:
-    with TestClient(create_app()) as c:
+    with TestClient(create_app(make_settings())) as c:
         res = c.post("/v1/auth/login", json={"email": "a@b.c", "password": "hunter2", "x": 1})
     assert res.status_code == 422
     body = res.json()
@@ -222,7 +223,7 @@ def test_validation_error_is_enveloped_and_does_not_echo_input() -> None:
 
 
 def test_unknown_route_and_method_are_enveloped() -> None:
-    with TestClient(create_app()) as c:
+    with TestClient(create_app(make_settings())) as c:
         nf = c.get("/v1/nope")
         na = c.delete("/v1/healthz")
     assert (nf.status_code, nf.json()["error"]["code"]) == (404, "NOT_FOUND")
@@ -230,7 +231,7 @@ def test_unknown_route_and_method_are_enveloped() -> None:
 
 
 def test_malformed_json_body_is_a_422_envelope() -> None:
-    with TestClient(create_app()) as c:
+    with TestClient(create_app(make_settings())) as c:
         res = c.post(
             "/v1/auth/login", content=b"\xff{not json", headers={"content-type": "application/json"}
         )

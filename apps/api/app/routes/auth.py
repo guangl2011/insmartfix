@@ -6,9 +6,10 @@ from fastapi.responses import JSONResponse
 from app.contract.auth import LoginRequest, LoginResponse, MeResponse
 from app.contract.common import error_responses
 from app.contract.security import bearer_scheme
+from app.routes import API_PREFIX
 from app.routes._stub import not_implemented
 
-router = APIRouter(tags=["auth"])
+router = APIRouter(prefix=API_PREFIX, tags=["auth"])
 authed = [Security(bearer_scheme)]
 
 

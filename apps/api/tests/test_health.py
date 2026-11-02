@@ -2,10 +2,12 @@
 
 from datetime import datetime
 
+import pytest
 from fastapi.testclient import TestClient
 
-from app.main import app as module_app
-from tests.conftest import ClientFactory
+from app.main import create_app
+from app.settings import get_settings
+from tests.conftest import TEST_JWT_SECRET, ClientFactory
 
 SQLITE_OK = "sqlite+pysqlite:///:memory:"
 UNREACHABLE = "postgresql+psycopg://nobody:nothing@127.0.0.1:1/none"
@@ -33,6 +35,14 @@ def test_readyz_503_with_error_envelope_when_database_down(client_for: ClientFac
     assert "server_time" in body
 
 
-def test_module_level_app_serves_health() -> None:
-    with TestClient(module_app) as c:
-        assert c.get("/v1/healthz").status_code == 200
+def test_factory_reads_settings_from_environment(monkeypatch: pytest.MonkeyPatch) -> None:
+    """`uvicorn --factory app.main:create_app` builds the app from env vars alone."""
+    get_settings.cache_clear()
+    monkeypatch.setenv("ENV", "test")
+    monkeypatch.setenv("DATABASE_URL", SQLITE_OK)
+    monkeypatch.setenv("JWT_SECRET", TEST_JWT_SECRET)
+    try:
+        with TestClient(create_app()) as c:
+            assert c.get("/v1/healthz").status_code == 200
+    finally:
+        get_settings.cache_clear()

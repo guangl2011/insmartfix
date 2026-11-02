@@ -16,9 +16,10 @@ from app.contract.workorders import (
     TransitionResponse,
     WorkOrderDetail,
 )
+from app.routes import API_PREFIX
 from app.routes._stub import not_implemented
 
-router = APIRouter(tags=["workorders"], dependencies=[Security(bearer_scheme)])
+router = APIRouter(prefix=API_PREFIX, tags=["workorders"], dependencies=[Security(bearer_scheme)])
 
 
 @router.get(
