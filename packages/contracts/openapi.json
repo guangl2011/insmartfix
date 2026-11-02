@@ -341,7 +341,7 @@
           "contractor"
         ],
         "summary": "Accept Offer",
-        "description": "Server-authoritative accept (FR-4.1, FR-5.3). 409 OFFER_UNAVAILABLE on a lost race.",
+        "description": "Server-authoritative accept (FR-4.1, FR-5.3). 409 OFFER_UNAVAILABLE on a lost race.\nReturns the full detail and packet synchronously (FR-3.6).",
         "operationId": "accept_offer",
         "security": [
           {
@@ -442,16 +442,6 @@
           },
           "422": {
             "description": "VALIDATION_ERROR, or IDEMPOTENCY_KEY_REUSED for a reused key with a different body",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            }
-          },
-          "501": {
-            "description": "NOT_IMPLEMENTED: route is declared in the contract but not built yet",
             "content": {
               "application/json": {
                 "schema": {
@@ -560,16 +550,6 @@
           },
           "422": {
             "description": "VALIDATION_ERROR, or IDEMPOTENCY_KEY_REUSED for a reused key with a different body",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            }
-          },
-          "501": {
-            "description": "NOT_IMPLEMENTED: route is declared in the contract but not built yet",
             "content": {
               "application/json": {
                 "schema": {
@@ -698,16 +678,6 @@
                 }
               }
             }
-          },
-          "501": {
-            "description": "NOT_IMPLEMENTED: route is declared in the contract but not built yet",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            }
           }
         }
       }
@@ -812,16 +782,6 @@
           },
           "422": {
             "description": "VALIDATION_ERROR, or IDEMPOTENCY_KEY_REUSED for a reused key with a different body",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            }
-          },
-          "501": {
-            "description": "NOT_IMPLEMENTED: route is declared in the contract but not built yet",
             "content": {
               "application/json": {
                 "schema": {

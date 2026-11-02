@@ -156,6 +156,7 @@ export interface paths {
         /**
          * Accept Offer
          * @description Server-authoritative accept (FR-4.1, FR-5.3). 409 OFFER_UNAVAILABLE on a lost race.
+         *     Returns the full detail and packet synchronously (FR-3.6).
          */
         post: operations["accept_offer"];
         delete?: never;
@@ -1405,15 +1406,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
-            /** @description NOT_IMPLEMENTED: route is declared in the contract but not built yet */
-            501: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
         };
     };
     accept_my_offer: {
@@ -1477,15 +1469,6 @@ export interface operations {
             };
             /** @description VALIDATION_ERROR, or IDEMPOTENCY_KEY_REUSED for a reused key with a different body */
             422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description NOT_IMPLEMENTED: route is declared in the contract but not built yet */
-            501: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1566,15 +1549,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
-            /** @description NOT_IMPLEMENTED: route is declared in the contract but not built yet */
-            501: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
         };
     };
     decline_my_offer: {
@@ -1640,15 +1614,6 @@ export interface operations {
             };
             /** @description VALIDATION_ERROR, or IDEMPOTENCY_KEY_REUSED for a reused key with a different body */
             422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description NOT_IMPLEMENTED: route is declared in the contract but not built yet */
-            501: {
                 headers: {
                     [name: string]: unknown;
                 };

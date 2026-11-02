@@ -1,12 +1,12 @@
-"""Contractor schedule + accept/decline (spec §5; FR-1.4, FR-2.1, FR-4). Accept/decline: M1-T8.
+"""Contractor schedule + accept/decline (spec §5; FR-1.4, FR-2.1, FR-4).
 
 Each `/contractor/{cid}/…` route has a `/me/…` alias that resolves `contractor_id` from the token.
 """
 
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import Depends, Response
-from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from app.clock import now
@@ -14,17 +14,19 @@ from app.contract.common import IdempotencyKeyHeader, error_responses
 from app.contract.schedule import DeclineRequest, ScheduleResponse
 from app.contract.workorders import WorkOrderDetail
 from app.db.session import get_db
+from app.dispatch.accept import accept, refresh_prediction_snapshot
+from app.dispatch.decline import decline
 from app.dispatch.schedule import build_schedule
 from app.identity_gate.deps import Authorized, AuthorizedTarget, gated_router
 from app.identity_gate.policy import Action
 from app.routes import API_PREFIX
-from app.routes._stub import not_implemented
+from app.workorders.detail import NullDecisionSource, build_detail
 
 DbSession = Annotated[Session, Depends(get_db)]
 router = gated_router(prefix=API_PREFIX, tags=["contractor"])
 
 SCHEDULE_ERRORS = error_responses(401, 403, 404, 422)
-ACCEPT_ERRORS = error_responses(401, 403, 404, 409, 422, 501)
+ACCEPT_ERRORS = error_responses(401, 403, 404, 409, 422)
 
 
 @router.get(
@@ -63,9 +65,12 @@ def _schedule(target: AuthorizedTarget, db: Session) -> ScheduleResponse:
     response_model=WorkOrderDetail,
     responses=ACCEPT_ERRORS,
 )
-def accept_offer(target: Authorized, idempotency_key: IdempotencyKeyHeader = None) -> JSONResponse:
-    """Server-authoritative accept (FR-4.1, FR-5.3). 409 OFFER_UNAVAILABLE on a lost race."""
-    return not_implemented()
+def accept_offer(
+    target: Authorized, db: DbSession, idempotency_key: IdempotencyKeyHeader = None
+) -> WorkOrderDetail:
+    """Server-authoritative accept (FR-4.1, FR-5.3). 409 OFFER_UNAVAILABLE on a lost race.
+    Returns the full detail and packet synchronously (FR-3.6)."""
+    return _accept(target, db)
 
 
 @router.post(
@@ -76,10 +81,23 @@ def accept_offer(target: Authorized, idempotency_key: IdempotencyKeyHeader = Non
     responses=ACCEPT_ERRORS,
 )
 def accept_my_offer(
-    target: Authorized, idempotency_key: IdempotencyKeyHeader = None
-) -> JSONResponse:
+    target: Authorized, db: DbSession, idempotency_key: IdempotencyKeyHeader = None
+) -> WorkOrderDetail:
     """Alias of accept for the caller's own `contractor_id`."""
-    return not_implemented()
+    return _accept(target, db)
+
+
+def _accept(target: AuthorizedTarget, db: Session) -> WorkOrderDetail:
+    cid, wo = _offer_target(target)
+    at = now()
+    accept(db, wo, cid, at)
+    detail = build_detail(
+        db, wo, contractor_id=cid, owner_view=False, now=at, decisions=NullDecisionSource()
+    )
+    # D10 L-4: snapshot the prediction the contractor saw when accepting.
+    refresh_prediction_snapshot(db, wo, detail.predicted_failure_code)
+    db.commit()
+    return detail
 
 
 @router.post(
@@ -92,11 +110,12 @@ def accept_my_offer(
 )
 def decline_offer(
     target: Authorized,
+    db: DbSession,
     body: DeclineRequest,
     idempotency_key: IdempotencyKeyHeader = None,
 ) -> Response:
     """Decline with an optional reason (FR-4.2); re-offers to the next rank (FR-4.3)."""
-    return not_implemented()
+    return _decline(target, db, body)
 
 
 @router.post(
@@ -108,7 +127,24 @@ def decline_offer(
     responses=ACCEPT_ERRORS,
 )
 def decline_my_offer(
-    target: Authorized, body: DeclineRequest, idempotency_key: IdempotencyKeyHeader = None
+    target: Authorized,
+    db: DbSession,
+    body: DeclineRequest,
+    idempotency_key: IdempotencyKeyHeader = None,
 ) -> Response:
     """Alias of decline for the caller's own `contractor_id`."""
-    return not_implemented()
+    return _decline(target, db, body)
+
+
+def _decline(target: AuthorizedTarget, db: Session, body: DeclineRequest) -> Response:
+    cid, wo = _offer_target(target)
+    decline(db, wo, cid, body, now())
+    db.commit()
+    return Response(status_code=204)
+
+
+def _offer_target(target: AuthorizedTarget) -> tuple[UUID, UUID]:
+    """The gate allowed a contractor (offeree or bound) on an existing WO (§2.1 rows 10, 15)."""
+    assert target.contractor_id is not None  # noqa: S101
+    assert target.wo is not None  # noqa: S101
+    return target.contractor_id, target.wo.wo_id
