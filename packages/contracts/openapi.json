@@ -1524,16 +1524,6 @@
                 }
               }
             }
-          },
-          "501": {
-            "description": "NOT_IMPLEMENTED: route is declared in the contract but not built yet",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            }
           }
         }
       }

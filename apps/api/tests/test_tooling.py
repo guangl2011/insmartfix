@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from app import export_openapi, seed
+from app import export_openapi
 
 
 def test_export_openapi_writes_deterministic_document(tmp_path: Path) -> None:
@@ -19,8 +19,3 @@ def test_export_openapi_writes_deterministic_document(tmp_path: Path) -> None:
 def test_export_openapi_usage_error(capsys: pytest.CaptureFixture[str]) -> None:
     assert export_openapi.main([]) == 2
     assert "usage" in capsys.readouterr().err
-
-
-def test_seed_stub_runs(capsys: pytest.CaptureFixture[str]) -> None:
-    assert seed.main() == 0
-    assert "M1" in capsys.readouterr().err

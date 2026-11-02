@@ -29,9 +29,10 @@ up: infra/.env ## local-stack: build and start postgres, minio, api, web, toxipr
 down: ## Stop the local stack and delete its volumes
 	$(COMPOSE) down -v --remove-orphans
 
-seed: infra/.env ## Load TEST_PLAN §5 fixtures (ENV=local|staging). Stub until M1.
+seed: infra/.env ## Load TEST_PLAN §5 fixtures (ENV=local|staging); needs SEED_PASSWORD in the env
+	@test -n "$$SEED_PASSWORD" || { echo "seed: set SEED_PASSWORD (test-account password, never committed)"; exit 1; }
 ifeq ($(ENV),local)
-	$(COMPOSE) exec -T api python -m app.seed
+	$(COMPOSE) exec -T -e SEED_PASSWORD api python -m app.seed
 else
 	@test -n "$$DATABASE_URL" || { echo "seed: set DATABASE_URL for ENV=$(ENV)"; exit 1; }
 	$(UV) run python -m app.seed
