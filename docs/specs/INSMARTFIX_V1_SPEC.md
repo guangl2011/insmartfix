@@ -1,6 +1,6 @@
 # InsmartFix v1 — Product & Technical Specification
 
-**Version:** 1.0 · **Date:** 2026-11-02 · **Status:** ✅ **Approved at G1 Spec Review** (2026-11-02, product owner, all D1–D10 recommendations accepted)
+**Version:** 1.1 · **Date:** 2026-11-02 · **Status:** ✅ **Approved at G1 Spec Review** (2026-11-02, product owner, all D1–D10 recommendations accepted) · **v1.1 delta (D11–D12, C-1–C-4): ✅ approved at G1 delta review (2026-11-02)**
 **Source of truth for *what/why/feel*:** [`docs/design/INSMARTFIX_PRODUCT_DESIGN.md`](../design/INSMARTFIX_PRODUCT_DESIGN.md) (v1.0) and [`docs/design/COLOR_LANGUAGE.md`](../design/COLOR_LANGUAGE.md) (v1.3).
 **This doc adds:** testable requirements, the API contract, architecture, and the decisions the design left open. Section references like "D§6.2" point into the design doc.
 
@@ -21,7 +21,9 @@ Each row has a recommendation. Approving the spec PR accepts every recommendatio
 | **D7** | "Web portal" meaning | **The InsmartFix contractor web app** (Next.js, mobile-first), the same product as the mobile apps. The owner/dispatcher portal stays in Insmart Core (D§2). A minimal **dispatch API** (owner/FM role) plus seed scripts create offers for testing and demos. | Matches the design's IA (D§5). Dana's UI is a later slice (D§14). |
 | **D8** | Hosting for staging and production | **Needs your input before S6 only** (doesn't block build). Default plan: container images to GHCR; API + Postgres + web on one managed container host (e.g. Fly.io or Render); mobile via Expo EAS → TestFlight and Play internal track. | Requires your accounts: a hosting provider, an Apple Developer account, a Google Play Console account, and an Expo account. |
 | **D9** | Credentials | **Hashed passwords (argon2id) from day one**, admin-seeded accounts; no self-service sign-up in v1. | Hashing is as cheap as the interim store. Self-service onboarding stays a follow-up (D§14). |
-| **D10** | Pre-build security review (D§15.4) | Run the **security-reviewer agent on this spec's identity gate and event model** before M1 merges, and again on code in M6. | Closes the review that died on an API error. |
+| **D10** | Pre-build security review (D§15.4) | Run the **security-reviewer agent on this spec's identity gate and event model** before M1 merges, and again on code in M6. | Closes the review that died on an API error. Done: `docs/security/D10_DESIGN_REVIEW.md`. |
+| **D11** *(v1.1 delta, from D10 SD-1)* | Server-side sign-out | **Add `POST /v1/auth/logout`** (authenticated, `204`). It increments the user's `token_version`, which revokes all of that user's outstanding tokens. Web and mobile sign-out call it before clearing local credentials. | NFR-6 promises OWASP ASVS L1, and ASVS V3.3.1 requires logout to invalidate the session. As written, sign-out only cleared the client. |
+| **D12** *(v1.1 delta, from D10 SD-2)* | Reused idempotency key with a different body | **Add error `422 IDEMPOTENCY_KEY_REUSED`** to every mutation that accepts `Idempotency-Key` when the same user and route + target reuse a key with a different request body. | Otherwise the server silently returns the old result, and a contractor's corrected submission is lost. |
 
 ---
 
@@ -41,7 +43,7 @@ Format: **FR-x.y** requirement → **AC** acceptance criteria (Given/When/Then, 
 - **FR-1.1** Email + password login. *AC:* valid credentials → session established and user lands on `/inbox`. Invalid → "Email or password is incorrect", fields preserved. Network failure → "Can't reach InsmartFix. Check your connection and try again." + Retry.
 - **FR-1.2** Web session is an httpOnly, Secure, SameSite=Lax cookie set by the Next.js `/api/auth/login` proxy. *AC:* no JWT is readable from `document.cookie`, localStorage, or JS memory.
 - **FR-1.3** Mobile stores the token in the OS keychain/keystore (`expo-secure-store`) only.
-- **FR-1.4** A contractor principal carries exactly one `contractor_id` in the token. Clients never send their own id: the web proxy injects it, and mobile calls `/me/*` aliases. *AC:* a request for `/contractor/{other_id}/…` by a contractor → **403**; `/workorders/{wo}` actions on a WO not bound or offered to them → **403/404**; owner/FM roles keep a tenant-wide override; cross-tenant → **404**.
+- **FR-1.4** A contractor principal carries exactly one `contractor_id` in the token. Clients never send their own id: the web proxy injects it, and mobile calls `/me/*` aliases. *AC:* a request for `/contractor/{other_id}/…` by a contractor → **403**; `/workorders/{wo}` actions on a WO not bound or offered to them → **403/404**; owner/FM roles keep a tenant-wide override; cross-tenant → **404**. *Clarifications (v1.1):* **C-1** a contractor addressing any `contractor_id` other than their own gets **403**, whether or not it exists or is in another tenant; "cross-tenant → 404" applies to work orders and to owner/FM lookups. **C-3** the owner/FM override is **read-only** (schedule, WO detail, dispatch state): owners cannot accept, decline, transition, upload or complete (→ 403), matching the §5 role column.
 - **FR-1.5** Sign in is enabled only when both fields are non-empty, and the form is disabled with a spinner while submitting.
 
 ### FR-2 Offer Inbox (D§6.2, D§7.5, D§11)
@@ -87,10 +89,10 @@ Format: **FR-x.y** requirement → **AC** acceptance criteria (Given/When/Then, 
 - **FR-7.4** `failure_code` is set once and append-only. The predicted code is never written unless the contractor chose it. A repeat submit with the same idempotency key returns the original result; a different key on a completed WO → `409 ALREADY_COMPLETED`.
 - **FR-7.5** Calibration: the server labels the decision **MATCH** (same failure code as predicted), **PARTIAL** (same component group), **MISS** (different group), or **NO_PREDICTION** (no packet). It stores the label alongside `actual_fault_matched`, and appends the outcome to the asset's memory.
 - **FR-7.6** Success: "Logged. This updates {asset}'s record and the system's prediction." → navigate to Inbox.
-- **FR-7.7** Photo upload: JPEG/PNG/HEIC, ≤ 10 MB each, resized client-side to ≤ 2048 px, EXIF GPS stripped server-side, stored in S3-compatible storage. Uploads queue offline like the submit.
+- **FR-7.7** Photo upload: JPEG/PNG/HEIC, ≤ 10 MB each, resized client-side to ≤ 2048 px, EXIF GPS stripped server-side (*C-4:* implemented as stripping **all** embedded metadata after applying orientation, which covers GPS), stored in S3-compatible storage. Uploads queue offline like the submit.
 
 ### FR-8 Account (D§6.7)
-- **FR-8.1** Shows name, company and a `contractor_id` badge, a support link, and Sign out (clears cookie/keychain **and** local drafts for that user after confirming any unsent drafts).
+- **FR-8.1** Shows name, company and a `contractor_id` badge, a support link, and Sign out (clears cookie/keychain **and** local drafts for that user after confirming any unsent drafts). *v1.1 (D11):* sign-out also calls `POST /auth/logout`, so the token is revoked on the server. On mobile, if offline, the call is best effort.
 
 ### FR-9 Shell & navigation (D§5)
 - **FR-9.1** Top bar + bottom nav with two items (Inbox, Account) and a disabled "Voice intake" stub. Routes: `/login`, `/inbox`, `/jobs/[id]`, `/account` (same structure in expo-router).
@@ -137,7 +139,7 @@ infra/        docker-compose.yml, Dockerfiles, seed data, k6 scripts
 | `catalog` | failure codes by asset subtype + component group |
 
 ### 4.4 Data model (core tables)
-`tenants` · `users(id, tenant_id, email, password_hash, role, contractor_id?)` · `contractors(id, tenant_id, name, company, avg_rating)` · `sites` · `assets(id, site_id, name, subtype, make, model, install_year, location, duty)` · `workorders(id, tenant_id, asset_id, symptom, wo_source, status, failure_code?, completed_at?)` · `dispatch(wo_id, state, current_contractor_id?, sla_deadline, version, decline_reason?)` · `dispatch_candidates(wo_id, contractor_id, rank, match_score, match_reason, state)` · `memory_events(id, asset_id, wo_id, type, payload jsonb, actor, at, idempotency_key unique, corrects_event_id?)` · `completion_reports(wo_id pk, …, idempotency_key)` · `calibration_records(wo_id, predicted_code, actual_code, label)` · `photos(id, wo_id, key, content_type, bytes)` · `failure_codes(code, subtype, component_group, label)`.
+`tenants` · `users(id, tenant_id, email, password_hash, role, contractor_id?)` · `contractors(id, tenant_id, name, company, avg_rating)` · `sites` · `assets(id, site_id, name, subtype, make, model, install_year, location, duty)` · `workorders(id, tenant_id, asset_id, symptom, wo_source, status, failure_code?, completed_at?)` · `dispatch(wo_id, state, current_contractor_id?, sla_deadline, version, decline_reason?)` · `dispatch_candidates(wo_id, contractor_id, rank, match_score, match_reason, state)` · `memory_events(id, asset_id, wo_id, type, payload jsonb, actor, at, idempotency_key, corrects_event_id?)` with **`UNIQUE (actor_user_id, idempotency_key)`** (*C-2:* idempotency keys are unique per actor and scoped by route + target, not global) · `completion_reports(wo_id pk, …, idempotency_key)` · `calibration_records(wo_id, predicted_code, actual_code, label)` · `photos(id, wo_id, key, content_type, bytes)` · `failure_codes(code, subtype, component_group, label)`.
 
 Dispatch states: `UNDISPATCHED → PENDING → ACCEPTED → (IN_PROGRESS) → COMPLETED`, plus `EXPIRED` (per candidate), `ESCALATED`, `NO_CONTRACTORS`. `Maintenance.status` stays on the PRD's sequence; `ARRIVED` is derived from events only (D§6.5 terminology note).
 
@@ -145,11 +147,12 @@ Dispatch states: `UNDISPATCHED → PENDING → ACCEPTED → (IN_PROGRESS) → CO
 
 ## 5 · API contract (v1)
 
-Base path `/v1`. JSON. Errors: `{"error": {"code": "STRING", "message": "human text"}}`. Every response includes `server_time` (ISO-8601 UTC). Mutations accept an `Idempotency-Key` header.
+Base path `/v1`. JSON. Errors: `{"error": {"code": "STRING", "message": "human text"}}`. Every response includes `server_time` (ISO-8601 UTC). Mutations accept an `Idempotency-Key` header. *v1.1 (D12):* reusing a key with a different body → `422 IDEMPOTENCY_KEY_REUSED`.
 
 | Method & path | Role | Request | Success | Errors |
 |---|---|---|---|---|
 | `POST /auth/login` | public | `{email, password}` | `{access_token, expires_at, user}` | 401 `INVALID_CREDENTIALS`, 429 rate-limited |
+| `POST /auth/logout` *(v1.1, D11)* | any authenticated | — | `204` (all of the user's tokens revoked) | 401 |
 | `GET /me` | any | — | `{user_id, name, role, tenant_id, contractor_id?, company?}` | 401 |
 | `GET /contractor/{cid}/schedule` · alias `GET /me/schedule` | contractor (own), owner/FM | — | `{offers: OfferSummary[], active: OfferSummary[], voice_bookings: [], server_time}` | 403 |
 | `POST /contractor/{cid}/accept/{wo}` · alias `POST /me/accept/{wo}` | contractor (own) | — | `WorkOrderDetail` | 409 `OFFER_UNAVAILABLE {reason: expired\|reassigned\|withdrawn}`, 403 |

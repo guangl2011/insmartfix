@@ -1,6 +1,6 @@
 # InsmartFix v1 — Test Plan & Test Environments
 
-**Version:** 1.0 · **Date:** 2026-11-02 · **Status:** ✅ Approved at G1 with the spec; executed in S4–S5; results judged at **G2 Test Review**.
+**Version:** 1.0 · **Date:** 2026-11-02 · **Status:** ✅ Approved at G1 with the spec; executed in S4–S5; results judged at **G2 Test Review**. · v1.1: D10 security test IDs added (T-AUTH-9…18, T-DISP-4, T-MEM-2, T-LIFE-5, T-IDEM-1, T-COMP-8/9, T-PHOTO-3); D11/D12 approved at G1 delta review, so T-AUTH-13 and T-IDEM-1 are in full scope.
 **Traces to:** [`docs/specs/INSMARTFIX_V1_SPEC.md`](../specs/INSMARTFIX_V1_SPEC.md) (FR/NFR IDs).
 
 ---
@@ -85,6 +85,17 @@ IDs: `T-<area>-<n>`. Platform: **A**=API, **W**=web, **D**=Android, **I**=iOS.
 | T-AUTH-6 | **Identity-gate matrix**: {contractor own, contractor other, owner same tenant, owner other tenant, no token, expired token} × {schedule, accept, decline, get WO, transition, photo, complete} → expected 2xx/401/403/404 for every cell | 1.4 | A |
 | T-AUTH-7 | Editing the URL or id in a web request cannot act as another contractor (proxy ignores a client-sent id) | 1.4 | W |
 | T-AUTH-8 | Login rate-limit triggers after 5 attempts | NFR-6 | A |
+| T-AUTH-9 | Past candidate can't take or disturb a live offer (gate returns 409; no dispatch change, no re-offer) | 1.4, 5.3 | A |
+| T-AUTH-10 | Login enumeration parity: unknown, wrong-password, disabled and null-hash accounts all return identical 401s | 1.1 | A |
+| T-AUTH-11 | Rate limit can't be bypassed: email variants share a bucket, untrusted X-Forwarded-For ignored, per-email and per-IP caps, shared store | NFR-6 | A |
+| T-AUTH-12 | JWT rejection: alg none or confusion, missing or wrong claims, nbf/exp, stale token_version, token claims differ from DB row → 401 | 1.4, NFR-6 | A |
+| T-AUTH-13 | Logout revokes every token for the user, server-side *(after D11 approval)* | 8.1, D11 | A W D I |
+| T-AUTH-14 | Structural gate coverage: route-table walk; every gated route has exactly one gate dependency | 1.4 | A |
+| T-AUTH-15 | No id oracles: byte-identical 403 and 404 bodies for other, cross-tenant, nonexistent and stranger targets | 1.4 (C-1) | A |
+| T-AUTH-16 | Owner/FM can't act as a contractor: mutating actions → 403, no state change | 1.4 (C-3) | A |
+| T-AUTH-17 | Web proxy hardening: path traversal and encoded paths, header allow-list, Origin check on mutations | 1.2, 1.4 | W |
+| T-AUTH-18 | Test clock absent outside local/test/ci; startup refuses misconfig; prod image lacks the test module | NFR-6 | A |
+| T-IDEM-1 | Idempotency keys scoped per user + route + target; reuse with a different body → 422 IDEMPOTENCY_KEY_REUSED *(D12)* | 6.4, 7.4, D12 | A |
 
 ### 6.2 Inbox & SLA
 | ID | Case | FR | Platforms |
@@ -102,6 +113,7 @@ IDs: `T-<area>-<n>`. Platform: **A**=API, **W**=web, **D**=Android, **I**=iOS.
 | T-DISP-1 | Concurrent accept by two contractors → exactly one 200 (100-iteration property test) | 5.3 | A |
 | T-DISP-2 | Expiry by sweeper with no traffic, and lazily on read | 5.1, 5.2 | A |
 | T-DISP-3 | Decline/expiry re-offers to next rank; last candidate → NO_CONTRACTORS | 4.3, 5.1 | A |
+| T-DISP-4 | Dispatch create is tenant-bounded (asset and candidates); contractor caller → 403 | 10.1 | A |
 
 ### 6.3 Detail & packet
 | ID | Case | FR | Platforms |
@@ -123,6 +135,8 @@ IDs: `T-<area>-<n>`. Platform: **A**=API, **W**=web, **D**=Android, **I**=iOS.
 | T-LIFE-3 | Out-of-order transition → 409; duplicate idempotency key → same event | 6.4 | A |
 | T-LIFE-4 | Stage advanced on device 1 shows on device 2 after refresh | 6.4 | W D |
 | T-MEM-1 | App DB role cannot UPDATE/DELETE `memory_events` | 6.1 | A |
+| T-MEM-2 | Runtime DB role owns no tables; insert-only on events, completions and calibration; failure_code set-once trigger | 6.1, 7.4 | A |
+| T-LIFE-5 | Undo rules: same WO, latest uncorrected advance only, one correction per event, not after completion | 6.3 | A |
 
 ### 6.5 Completion & calibration
 | ID | Case | FR | Platforms |
@@ -135,8 +149,11 @@ IDs: `T-<area>-<n>`. Platform: **A**=API, **W**=web, **D**=Android, **I**=iOS.
 | T-COMP-6 | Idempotent repeat submit; different key after completion → 409 | 7.4 | A |
 | T-CAL-1 | Labels MATCH / PARTIAL / MISS / NO_PREDICTION (property test over the code catalog) | 7.5 | A |
 | T-COMP-7 | Success copy then Inbox navigation; draft cleared | 7.6 | W D I |
+| T-COMP-8 | Concurrent completions with different keys → exactly one 200, one 409, one record each | 7.4, 7.5 | A |
+| T-COMP-9 | Mass assignment and bounds rejected (extra=forbid); photo_ids must belong to this WO; label uses dispatch-time prediction snapshot | 7.1, 7.5 | A |
 | T-PHOTO-1 | Upload valid image; reject > 10 MB and non-image; EXIF GPS stripped | 7.7 | A W D I |
 | T-PHOTO-2 | Photo queued offline then uploaded before the completion flush | 7.7 | D I |
+| T-PHOTO-3 | Upload hardening: decompression bombs, polyglots stored re-encoded, all metadata stripped, private bucket, per-WO cap | 7.7 (C-4) | A |
 
 ### 6.6 Account, shell, theming, a11y
 | ID | Case | FR/NFR | Platforms |
