@@ -1,0 +1,45 @@
+# deps
+node_modules/
+.pnpm-store/
+
+# build output
+.next/
+dist/
+build/
+out/
+*.tsbuildinfo
+.turbo/
+coverage/
+.expo/
+web-build/
+apps/mobile/android/
+apps/mobile/ios/
+
+# test output
+playwright-report/
+test-results/
+blob-report/
+apps/web/e2e/.auth/
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+coverage.xml
+coverage.json
+htmlcov/
+
+# env (only .env.example is committed)
+.env
+.env.*
+!.env.example
+
+# misc
+.DS_Store
+*.log
+apps/web/next-env.d.ts

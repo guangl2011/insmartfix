@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "InsmartFix",
+    "slug": "insmartfix",
+    "scheme": "insmartfix",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "backgroundColor": "#F4F6F8",
+    "ios": {
+      "bundleIdentifier": "ai.insmart.fix",
+      "supportsTablet": false,
+      "infoPlist": { "ITSAppUsesNonExemptEncryption": false }
+    },
+    "android": {
+      "package": "ai.insmart.fix",
+      "edgeToEdgeEnabled": true
+    },
+    "plugins": ["expo-router"],
+    "experiments": { "typedRoutes": false }
+  }
+}
