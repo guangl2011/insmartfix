@@ -323,7 +323,6 @@ APPEND_ONLY = APPEND_ONLY_TABLES
 MUTABLE = (
     "tenants",
     "contractors",
-    "users",
     "sites",
     "assets",
     "failure_codes",
@@ -333,6 +332,7 @@ MUTABLE = (
     "photos",
 )
 DISPOSABLE = ("idempotency_records",)
+USERS_UPDATABLE = "name, password_hash, token_version, disabled_at"
 
 def upgrade() -> None:
     op.execute(ensure_app_role_sql())
@@ -347,6 +347,10 @@ def upgrade() -> None:
         op.execute(grant_runtime_sql(table, MUTABLE_PRIVILEGES))
     for table in DISPOSABLE:
         op.execute(grant_runtime_sql(table, DISPOSABLE_PRIVILEGES))
+    # Identity columns (role, tenant, contractor binding, email) are never rewritten by the app, so
+    # a SQL-injection or ORM bug can't escalate a principal. Auth only bumps these (M-5, D11).
+    op.execute(grant_runtime_sql("users", "SELECT, INSERT"))
+    op.execute(f"GRANT UPDATE ({USERS_UPDATABLE}) ON TABLE users TO {APP_ROLE};")
 
 
 def downgrade() -> None:

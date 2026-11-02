@@ -357,3 +357,28 @@ def test_user_role_and_contractor_id_agree(app_conn: Connection, world: World) -
             ),
             {"t": world.tenant_id, "e": f"{uuid.uuid4().hex}@test.example"},
         )
+
+
+@pytest.mark.parametrize(
+    ("column", "value"),
+    [("role", "owner"), ("tenant_id", None), ("contractor_id", None), ("email", "x@evil.example")],
+)
+def test_runtime_role_cannot_rewrite_identity_columns(
+    app_conn: Connection, world: World, column: str, value: object
+) -> None:
+    """A principal's role, tenant and contractor binding are fixed for the runtime role."""
+    with pytest.raises(ProgrammingError, match="permission denied"):
+        app_conn.execute(
+            text(f"UPDATE users SET {column} = :v WHERE id = :id"),  # noqa: S608 (test constant)
+            {"v": value, "id": world.contractor_user_id},
+        )
+
+
+def test_runtime_role_can_revoke_tokens(app_conn: Connection, world: World) -> None:
+    """M-5 / D11: bumping token_version (and disabling) stays possible."""
+    app_conn.execute(
+        text(
+            "UPDATE users SET token_version = token_version + 1, disabled_at = now() WHERE id = :id"
+        ),
+        {"id": world.contractor_user_id},
+    )
