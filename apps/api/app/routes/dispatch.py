@@ -15,6 +15,7 @@ from app.contract.common import ErrorCode, IdempotencyKeyHeader, error_responses
 from app.contract.dispatch import DispatchCreateRequest, DispatchCreateResponse
 from app.core.errors import ApiError
 from app.db.session import get_db
+from app.decision_engine.stub import StubDecisionEngine
 from app.dispatch.create import (
     AssetNotFoundError,
     CandidateSpec,
@@ -61,6 +62,7 @@ def create_dispatch_workorder(
             created_by_user_id=principal.user_id,
             spec=spec,
             now=now(),
+            predict=StubDecisionEngine(db).predicted_failure_code,  # D10 L-4 snapshot
         )
     except AssetNotFoundError as exc:
         raise ApiError(404, ErrorCode.NOT_FOUND) from exc
