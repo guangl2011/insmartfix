@@ -118,16 +118,6 @@
                 }
               }
             }
-          },
-          "501": {
-            "description": "NOT_IMPLEMENTED: route is declared in the contract but not built yet",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            }
           }
         }
       }
@@ -146,16 +136,6 @@
           },
           "401": {
             "description": "UNAUTHENTICATED (or INVALID_CREDENTIALS on login): missing, invalid or revoked token",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            }
-          },
-          "501": {
-            "description": "NOT_IMPLEMENTED: route is declared in the contract but not built yet",
             "content": {
               "application/json": {
                 "schema": {
@@ -193,16 +173,6 @@
           },
           "401": {
             "description": "UNAUTHENTICATED (or INVALID_CREDENTIALS on login): missing, invalid or revoked token",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            }
-          },
-          "501": {
-            "description": "NOT_IMPLEMENTED: route is declared in the contract but not built yet",
             "content": {
               "application/json": {
                 "schema": {

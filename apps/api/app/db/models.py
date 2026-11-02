@@ -341,3 +341,13 @@ class IdempotencyRecord(Base):
     response_status: Mapped[int | None] = mapped_column(Integer)
     response_ref: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     created_at: Mapped[datetime] = _tstz(server_now=True)
+
+
+class AuthAttempt(Base):
+    """Login rate-limit counter rows (D10 M-7). Disposable; no primary key in the schema."""
+
+    __tablename__ = "auth_attempts"
+    __table_args__ = (Index("ix_auth_attempts_bucket_at", "bucket", "at"),)
+    # The ORM needs an identity; the table itself has no PK (rows are never addressed one by one).
+    bucket: Mapped[str] = mapped_column(CHAR(64), primary_key=True)
+    at: Mapped[datetime] = mapped_column(DateTime(timezone=True), primary_key=True)

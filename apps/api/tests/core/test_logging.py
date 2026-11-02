@@ -84,7 +84,7 @@ def test_access_log_has_route_template_and_request_id(caplog: pytest.LogCaptureF
     assert res.headers["x-request-id"] == "client-req-0001"
     rec = next(r for r in caplog.records if r.name == "app.access")
     assert rec.__dict__["route"] == "/v1/workorders/{wo}"
-    assert rec.__dict__["status"] == 501
+    assert rec.__dict__["status"] == 401
     rendered = JsonFormatter().format(rec)
     assert JWT not in rendered
     assert "6f1c1d2e" not in rendered

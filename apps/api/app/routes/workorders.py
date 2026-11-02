@@ -2,11 +2,11 @@
 
 from uuid import UUID
 
-from fastapi import APIRouter, Security
+from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
+from app.auth.deps import get_principal
 from app.contract.common import IdempotencyKeyHeader, error_responses
-from app.contract.security import bearer_scheme
 from app.contract.workorders import (
     CompletionReport,
     CompletionResponse,
@@ -19,7 +19,7 @@ from app.contract.workorders import (
 from app.routes import API_PREFIX
 from app.routes._stub import not_implemented
 
-router = APIRouter(prefix=API_PREFIX, tags=["workorders"], dependencies=[Security(bearer_scheme)])
+router = APIRouter(prefix=API_PREFIX, tags=["workorders"], dependencies=[Depends(get_principal)])
 
 
 @router.get(

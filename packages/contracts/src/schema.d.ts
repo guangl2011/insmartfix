@@ -1164,15 +1164,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorEnvelope"];
                 };
             };
-            /** @description NOT_IMPLEMENTED: route is declared in the contract but not built yet */
-            501: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
         };
     };
     logout: {
@@ -1193,15 +1184,6 @@ export interface operations {
             };
             /** @description UNAUTHENTICATED (or INVALID_CREDENTIALS on login): missing, invalid or revoked token */
             401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description NOT_IMPLEMENTED: route is declared in the contract but not built yet */
-            501: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1231,15 +1213,6 @@ export interface operations {
             };
             /** @description UNAUTHENTICATED (or INVALID_CREDENTIALS on login): missing, invalid or revoked token */
             401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description NOT_IMPLEMENTED: route is declared in the contract but not built yet */
-            501: {
                 headers: {
                     [name: string]: unknown;
                 };

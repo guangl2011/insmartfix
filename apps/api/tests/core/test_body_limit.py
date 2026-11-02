@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 
 from app.core.middleware import JSON_BODY_LIMIT
 from app.main import create_app
-from tests.conftest import make_settings
+from tests.conftest import authed_app, make_settings
 
 WO = "6f1c1d2e-0000-4000-8000-000000000001"
 
@@ -48,8 +48,8 @@ def test_garbage_content_length_rejected() -> None:
 
 
 def test_small_json_and_large_multipart_pass_the_limit() -> None:
-    c = _client()
-    ok = c.post("/v1/auth/login", json={"email": "a@b.c", "password": "x"})
+    c = TestClient(authed_app())
+    ok = c.post("/v1/workorders/" + WO + "/transition", json={"action": "advance"})
     assert ok.status_code == 501  # reaches the stub
     photo = c.post(
         f"/v1/workorders/{WO}/photos",

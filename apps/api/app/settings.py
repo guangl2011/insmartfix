@@ -1,5 +1,6 @@
 """Runtime configuration — environment variables only (TEST_PLAN §3 environment parity)."""
 
+import ipaddress
 from functools import lru_cache
 from typing import Literal
 
@@ -39,6 +40,9 @@ class Settings(BaseSettings):
     # production; dev/mock origins come from env only. Never a wildcard.
     cors_origins: list[str] = Field(default_factory=list)
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
+    # D10 M-7: peers (CIDRs) whose X-Forwarded-For is believed for the login rate-limit key, i.e.
+    # the web BFF or the platform load balancer. Empty: always use the socket peer.
+    trusted_proxies: list[str] = Field(default_factory=list)
 
     @field_validator("database_url")
     @classmethod
@@ -61,6 +65,13 @@ class Settings(BaseSettings):
         if self.env == "production" and self.cors_origins:
             raise ValueError("CORS_ORIGINS must be empty in production (D10 L-7)")
         return self
+
+    @field_validator("trusted_proxies")
+    @classmethod
+    def _valid_cidrs(cls, v: list[str]) -> list[str]:
+        for cidr in v:
+            ipaddress.ip_network(cidr, strict=False)  # raises ValueError on a bad entry
+        return v
 
     @property
     def test_clock_enabled(self) -> bool:

@@ -1,10 +1,15 @@
 import os
 from collections.abc import Callable, Iterator
 from typing import Any
+from uuid import UUID
 
 import pytest
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from app.auth.deps import get_principal
+from app.auth.service import Principal
+from app.contract.auth import Role
 from app.db.session import get_engine, get_sessionmaker
 from app.main import create_app
 from app.settings import Settings
@@ -53,3 +58,20 @@ def postgres_url() -> str:
             pytest.fail("REQUIRE_INTEGRATION=1 but DATABASE_URL is not a Postgres URL")
         pytest.skip("integration test needs DATABASE_URL pointing at Postgres")
     return url
+
+
+FAKE_CONTRACTOR = Principal(
+    user_id=UUID("00000000-0000-4000-8000-00000000f001"),
+    role=Role.CONTRACTOR,
+    tenant_id=UUID("00000000-0000-4000-8000-00000000f0a1"),
+    contractor_id=UUID("00000000-0000-4000-8000-00000000f0c1"),
+    name="Fake Contractor",
+    company=None,
+)
+
+
+def authed_app(settings: Settings | None = None, principal: Principal = FAKE_CONTRACTOR) -> FastAPI:
+    """An app whose `get_principal` returns `principal` without a token or a database."""
+    app = create_app(settings or make_settings())
+    app.dependency_overrides[get_principal] = lambda: principal
+    return app
