@@ -33,7 +33,10 @@ export interface Theme {
 
 function rnText(): Record<TypeStyleName, RnTextStyle> {
   const out = {} as Record<TypeStyleName, RnTextStyle>;
-  for (const [name, s] of Object.entries(typeScale) as [TypeStyleName, (typeof typeScale)[TypeStyleName]][]) {
+  for (const [name, s] of Object.entries(typeScale) as [
+    TypeStyleName,
+    (typeof typeScale)[TypeStyleName],
+  ][]) {
     out[name] = {
       fontFamily: rnFontFamily[s.family],
       fontSize: s.size,
