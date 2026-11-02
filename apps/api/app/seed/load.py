@@ -16,8 +16,10 @@ from sqlalchemy.orm import Session
 from app.db.models import (
     Asset,
     Contractor,
+    DecisionPacket,
     Dispatch,
     DispatchCandidate,
+    FailureCode,
     MemoryEvent,
     Site,
     Tenant,
@@ -25,6 +27,8 @@ from app.db.models import (
     WorkOrder,
 )
 from app.seed import fixtures as fx
+from app.seed import packets
+from app.seed.failure_codes import FAILURE_CODES
 
 HashFn = Callable[[str], str]
 
@@ -32,6 +36,8 @@ HashFn = Callable[[str], str]
 def load(session: Session, *, now: datetime, password: str, hash_password: HashFn) -> None:
     """Load every fixture. The caller commits."""
     _reference_data(session, password=password, hash_password=hash_password)
+    _catalog(session)
+    _packets(session, now)
     for offer in fx.OFFERS:
         _offer(session, offer, now)
     _active_jobs(session, now)
@@ -77,6 +83,31 @@ def _reference_data(session: Session, *, password: str, hash_password: HashFn) -
                 duty=a.duty,
             ),
         )
+    session.flush()
+
+
+def _catalog(session: Session) -> None:
+    for subtype, codes in FAILURE_CODES.items():
+        for order, (code, group, label) in enumerate(codes):
+            row = session.get(FailureCode, (subtype, code))
+            if row is None:
+                row = FailureCode(subtype=subtype, code=code)
+                session.add(row)
+            row.component_group, row.label, row.sort_order = group, label, order
+    session.flush()
+
+
+def _packets(session: Session, now: datetime) -> None:
+    """RTU-04 gets a full packet; AHU-NEW-01 deliberately has none (FR-3.4)."""
+    decision, packet = packets.rtu04(now)
+    row = session.get(DecisionPacket, fx.A_RTU04)
+    if row is None:
+        row = DecisionPacket(asset_id=fx.A_RTU04, tenant_id=fx.TENANT_MIDTOWN)
+        session.add(row)
+    row.predicted_failure_code = packets.RTU04_PREDICTED
+    row.likely_cause = packets.RTU04_LIKELY_CAUSE
+    row.confidence = Decimal(str(packets.RTU04_CONFIDENCE))
+    row.decision, row.packet, row.updated_at = decision, packet, now
     session.flush()
 
 
@@ -212,7 +243,7 @@ def _work_order(
             symptom=symptom,
             wo_source="dispatch",
             status=status,
-            predicted_failure_code=fx.RTU_PREDICTED if asset_id == fx.A_RTU04 else None,
+            predicted_failure_code=packets.RTU04_PREDICTED if asset_id == fx.A_RTU04 else None,
         )
     )
     session.flush()

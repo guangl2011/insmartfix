@@ -351,3 +351,24 @@ class AuthAttempt(Base):
     # The ORM needs an identity; the table itself has no PK (rows are never addressed one by one).
     bucket: Mapped[str] = mapped_column(CHAR(64), primary_key=True)
     at: Mapped[datetime] = mapped_column(DateTime(timezone=True), primary_key=True)
+
+
+class DecisionPacket(Base):
+    """Seeded packet for the stub Decision Engine (M2-T1). No row = no pre-diagnostic packet."""
+
+    __tablename__ = "decision_packets"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["tenant_id", "asset_id"],
+            ["assets.tenant_id", "assets.id"],
+            name="fk_decision_packets_asset",
+        ),
+    )
+    asset_id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True)
+    tenant_id: Mapped[uuid.UUID] = mapped_column(Uuid)
+    predicted_failure_code: Mapped[str | None] = mapped_column(String(64))
+    likely_cause: Mapped[str | None] = mapped_column(String(200))
+    confidence: Mapped[Decimal | None] = mapped_column(Numeric(4, 3))
+    decision: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    packet: Mapped[dict[str, Any]] = mapped_column(JSONB)
+    updated_at: Mapped[datetime] = _tstz(server_now=True)

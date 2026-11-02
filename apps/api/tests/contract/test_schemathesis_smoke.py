@@ -18,13 +18,14 @@ from schemathesis.specs.openapi.checks import (
 from tests.conftest import authed_app
 
 # Stubbed routes are reached as an authenticated contractor. Routes that need Postgres are covered
-# by their integration tests instead: auth (tests/integration/test_auth_http.py) and dispatch
-# create (tests/integration/test_T_DISP_4_http.py, which validates DispatchCreateResponse).
+# by their integration tests instead: auth (tests/integration/test_auth_http.py), dispatch create
+# (tests/integration/test_T_DISP_4_http.py, which validates DispatchCreateResponse) and the
+# catalog (tests/integration/test_catalog_http.py, which validates FailureCodeList).
 schema = schemathesis.openapi.from_asgi("/openapi.json", authed_app())
 
 
 @schema.exclude(
-    path_regex=r"^/v1/(readyz|auth/login|auth/logout|me|dispatch/workorders)$"
+    path_regex=r"^/v1/(readyz|auth/login|auth/logout|me|dispatch/workorders|failure-codes)$"
 ).parametrize()
 @settings(max_examples=8, deadline=None, suppress_health_check=list(HealthCheck))
 def test_every_operation_conforms_to_its_schema(case: schemathesis.Case[Any]) -> None:

@@ -199,7 +199,15 @@ def test_photo_upload_is_single_multipart_file(spec: dict[str, Any]) -> None:
     assert schema["properties"]["file"]["format"] == "binary"
 
 
-IMPLEMENTED = {"login", "logout", "get_me", "healthz", "readyz", "create_dispatch_workorder"}
+IMPLEMENTED = {
+    "login",
+    "logout",
+    "get_me",
+    "healthz",
+    "readyz",
+    "create_dispatch_workorder",
+    "list_failure_codes",
+}
 
 
 @pytest.mark.parametrize(
