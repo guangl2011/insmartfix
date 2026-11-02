@@ -8,3 +8,4 @@ export * from './ports';
 export * from './drafts';
 export * from './sla';
 export * from './ordering';
+export * from './inbox';
