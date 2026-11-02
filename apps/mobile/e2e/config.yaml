@@ -1,3 +1,0 @@
-# Maestro workspace config: run every flow in this directory.
-flows:
-  - '*'
