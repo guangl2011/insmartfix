@@ -121,8 +121,6 @@ ASSETS = (
     ),
 )
 
-RTU_PREDICTED = "COMP-CONTACTOR"  # FR-3 happy path: RTU-04 predicts COMP-CONTACTOR at 82 %
-
 
 @dataclass(frozen=True)
 class OfferFixture:
