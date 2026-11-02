@@ -207,6 +207,8 @@ IMPLEMENTED = {
     "readyz",
     "create_dispatch_workorder",
     "list_failure_codes",
+    "get_contractor_schedule",
+    "get_my_schedule",
 }
 
 
