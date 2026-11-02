@@ -59,19 +59,1959 @@
           }
         }
       }
+    },
+    "/v1/auth/login": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Login",
+        "description": "Email + password login (FR-1.1). Every failure is an identical 401 (D10 L-3).",
+        "operationId": "login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED (or INVALID_CREDENTIALS on login): missing, invalid or revoked token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "VALIDATION_ERROR, or IDEMPOTENCY_KEY_REUSED for a reused key with a different body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "RATE_LIMITED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "NOT_IMPLEMENTED: route is declared in the contract but not built yet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth/logout": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Logout",
+        "description": "Revoke every outstanding token of the caller by bumping `token_version` (D11).",
+        "operationId": "logout",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "description": "UNAUTHENTICATED (or INVALID_CREDENTIALS on login): missing, invalid or revoked token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "NOT_IMPLEMENTED: route is declared in the contract but not built yet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/v1/me": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Get Me",
+        "description": "The signed-in user; contractors get their `contractor_id` here (FR-1.4).",
+        "operationId": "get_me",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED (or INVALID_CREDENTIALS on login): missing, invalid or revoked token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "NOT_IMPLEMENTED: route is declared in the contract but not built yet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/v1/contractor/{cid}/schedule": {
+      "get": {
+        "tags": [
+          "contractor"
+        ],
+        "summary": "Get Contractor Schedule",
+        "description": "Offers + active jobs for one contractor (own `cid`, or owner/FM in the same tenant).",
+        "operationId": "get_contractor_schedule",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "cid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Cid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED (or INVALID_CREDENTIALS on login): missing, invalid or revoked token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN: the caller may not perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND: the target does not exist or is not visible to the caller",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "VALIDATION_ERROR, or IDEMPOTENCY_KEY_REUSED for a reused key with a different body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "NOT_IMPLEMENTED: route is declared in the contract but not built yet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/me/schedule": {
+      "get": {
+        "tags": [
+          "contractor"
+        ],
+        "summary": "Get My Schedule",
+        "description": "Alias of the schedule for the caller's own `contractor_id` (FR-1.4).",
+        "operationId": "get_my_schedule",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduleResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED (or INVALID_CREDENTIALS on login): missing, invalid or revoked token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN: the caller may not perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND: the target does not exist or is not visible to the caller",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "VALIDATION_ERROR, or IDEMPOTENCY_KEY_REUSED for a reused key with a different body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "NOT_IMPLEMENTED: route is declared in the contract but not built yet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/v1/contractor/{cid}/accept/{wo}": {
+      "post": {
+        "tags": [
+          "contractor"
+        ],
+        "summary": "Accept Offer",
+        "description": "Server-authoritative accept (FR-4.1, FR-5.3). 409 OFFER_UNAVAILABLE on a lost race.",
+        "operationId": "accept_offer",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "cid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Cid"
+            }
+          },
+          {
+            "name": "wo",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Wo"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9._:-]{8,128}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Client-generated key (e.g. a UUID) that makes a retry return the original result. Scoped to the caller, the route and its target. Reusing a key with a different body returns 422 IDEMPOTENCY_KEY_REUSED.",
+              "title": "Idempotency-Key"
+            },
+            "description": "Client-generated key (e.g. a UUID) that makes a retry return the original result. Scoped to the caller, the route and its target. Reusing a key with a different body returns 422 IDEMPOTENCY_KEY_REUSED."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkOrderDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED (or INVALID_CREDENTIALS on login): missing, invalid or revoked token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN: the caller may not perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND: the target does not exist or is not visible to the caller",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict: OFFER_UNAVAILABLE, INVALID_TRANSITION or ALREADY_COMPLETED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "VALIDATION_ERROR, or IDEMPOTENCY_KEY_REUSED for a reused key with a different body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "NOT_IMPLEMENTED: route is declared in the contract but not built yet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/me/accept/{wo}": {
+      "post": {
+        "tags": [
+          "contractor"
+        ],
+        "summary": "Accept My Offer",
+        "description": "Alias of accept for the caller's own `contractor_id`.",
+        "operationId": "accept_my_offer",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "wo",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Wo"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9._:-]{8,128}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Client-generated key (e.g. a UUID) that makes a retry return the original result. Scoped to the caller, the route and its target. Reusing a key with a different body returns 422 IDEMPOTENCY_KEY_REUSED.",
+              "title": "Idempotency-Key"
+            },
+            "description": "Client-generated key (e.g. a UUID) that makes a retry return the original result. Scoped to the caller, the route and its target. Reusing a key with a different body returns 422 IDEMPOTENCY_KEY_REUSED."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkOrderDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED (or INVALID_CREDENTIALS on login): missing, invalid or revoked token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN: the caller may not perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND: the target does not exist or is not visible to the caller",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict: OFFER_UNAVAILABLE, INVALID_TRANSITION or ALREADY_COMPLETED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "VALIDATION_ERROR, or IDEMPOTENCY_KEY_REUSED for a reused key with a different body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "NOT_IMPLEMENTED: route is declared in the contract but not built yet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/contractor/{cid}/decline/{wo}": {
+      "post": {
+        "tags": [
+          "contractor"
+        ],
+        "summary": "Decline Offer",
+        "description": "Decline with an optional reason (FR-4.2); re-offers to the next rank (FR-4.3).",
+        "operationId": "decline_offer",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "cid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Cid"
+            }
+          },
+          {
+            "name": "wo",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Wo"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9._:-]{8,128}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Client-generated key (e.g. a UUID) that makes a retry return the original result. Scoped to the caller, the route and its target. Reusing a key with a different body returns 422 IDEMPOTENCY_KEY_REUSED.",
+              "title": "Idempotency-Key"
+            },
+            "description": "Client-generated key (e.g. a UUID) that makes a retry return the original result. Scoped to the caller, the route and its target. Reusing a key with a different body returns 422 IDEMPOTENCY_KEY_REUSED."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeclineRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "description": "UNAUTHENTICATED (or INVALID_CREDENTIALS on login): missing, invalid or revoked token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN: the caller may not perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND: the target does not exist or is not visible to the caller",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict: OFFER_UNAVAILABLE, INVALID_TRANSITION or ALREADY_COMPLETED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "VALIDATION_ERROR, or IDEMPOTENCY_KEY_REUSED for a reused key with a different body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "NOT_IMPLEMENTED: route is declared in the contract but not built yet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/me/decline/{wo}": {
+      "post": {
+        "tags": [
+          "contractor"
+        ],
+        "summary": "Decline My Offer",
+        "description": "Alias of decline for the caller's own `contractor_id`.",
+        "operationId": "decline_my_offer",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "wo",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Wo"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9._:-]{8,128}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Client-generated key (e.g. a UUID) that makes a retry return the original result. Scoped to the caller, the route and its target. Reusing a key with a different body returns 422 IDEMPOTENCY_KEY_REUSED.",
+              "title": "Idempotency-Key"
+            },
+            "description": "Client-generated key (e.g. a UUID) that makes a retry return the original result. Scoped to the caller, the route and its target. Reusing a key with a different body returns 422 IDEMPOTENCY_KEY_REUSED."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeclineRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "description": "UNAUTHENTICATED (or INVALID_CREDENTIALS on login): missing, invalid or revoked token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN: the caller may not perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND: the target does not exist or is not visible to the caller",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict: OFFER_UNAVAILABLE, INVALID_TRANSITION or ALREADY_COMPLETED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "VALIDATION_ERROR, or IDEMPOTENCY_KEY_REUSED for a reused key with a different body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "NOT_IMPLEMENTED: route is declared in the contract but not built yet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/workorders/{wo}": {
+      "get": {
+        "tags": [
+          "workorders"
+        ],
+        "summary": "Get Workorder",
+        "description": "Detail + packet. Contractor view omits `ranked_candidates`; owner/FM view has it (FR-3.5).",
+        "operationId": "get_workorder",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "wo",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Wo"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/WorkOrderDetail"
+                    },
+                    {
+                      "$ref": "#/components/schemas/OwnerWorkOrderDetail"
+                    }
+                  ],
+                  "title": "Response Get Workorder"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED (or INVALID_CREDENTIALS on login): missing, invalid or revoked token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN: the caller may not perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND: the target does not exist or is not visible to the caller",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "VALIDATION_ERROR, or IDEMPOTENCY_KEY_REUSED for a reused key with a different body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "NOT_IMPLEMENTED: route is declared in the contract but not built yet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/workorders/{wo}/transition": {
+      "post": {
+        "tags": [
+          "workorders"
+        ],
+        "summary": "Transition Workorder",
+        "description": "Advance EN_ROUTE → ARRIVED, or undo via a CORRECTION event (FR-6.1, FR-6.3, FR-6.4).",
+        "operationId": "transition_workorder",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "wo",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Wo"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9._:-]{8,128}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Client-generated key (e.g. a UUID) that makes a retry return the original result. Scoped to the caller, the route and its target. Reusing a key with a different body returns 422 IDEMPOTENCY_KEY_REUSED.",
+              "title": "Idempotency-Key"
+            },
+            "description": "Client-generated key (e.g. a UUID) that makes a retry return the original result. Scoped to the caller, the route and its target. Reusing a key with a different body returns 422 IDEMPOTENCY_KEY_REUSED."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransitionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransitionResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED (or INVALID_CREDENTIALS on login): missing, invalid or revoked token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN: the caller may not perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND: the target does not exist or is not visible to the caller",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict: OFFER_UNAVAILABLE, INVALID_TRANSITION or ALREADY_COMPLETED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "VALIDATION_ERROR, or IDEMPOTENCY_KEY_REUSED for a reused key with a different body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "NOT_IMPLEMENTED: route is declared in the contract but not built yet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/workorders/{wo}/photos": {
+      "post": {
+        "tags": [
+          "workorders"
+        ],
+        "summary": "Upload Workorder Photo",
+        "description": "Upload one completion photo (FR-7.7). The body is streamed and parsed by the handler.",
+        "operationId": "upload_workorder_photo",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "wo",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Wo"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9._:-]{8,128}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Client-generated key (e.g. a UUID) that makes a retry return the original result. Scoped to the caller, the route and its target. Reusing a key with a different body returns 422 IDEMPOTENCY_KEY_REUSED.",
+              "title": "Idempotency-Key"
+            },
+            "description": "Client-generated key (e.g. a UUID) that makes a retry return the original result. Scoped to the caller, the route and its target. Reusing a key with a different body returns 422 IDEMPOTENCY_KEY_REUSED."
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhotoResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED (or INVALID_CREDENTIALS on login): missing, invalid or revoked token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN: the caller may not perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND: the target does not exist or is not visible to the caller",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "PAYLOAD_TOO_LARGE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "UNSUPPORTED_MEDIA_TYPE",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "VALIDATION_ERROR, or IDEMPOTENCY_KEY_REUSED for a reused key with a different body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "NOT_IMPLEMENTED: route is declared in the contract but not built yet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "One JPEG, PNG or HEIC image, at most 10 MB."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/workorders/{wo}/complete": {
+      "post": {
+        "tags": [
+          "workorders"
+        ],
+        "summary": "Complete Workorder",
+        "description": "Submit the completion report; labels calibration (FR-7.4, FR-7.5).",
+        "operationId": "complete_workorder",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "wo",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Wo"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9._:-]{8,128}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Client-generated key (e.g. a UUID) that makes a retry return the original result. Scoped to the caller, the route and its target. Reusing a key with a different body returns 422 IDEMPOTENCY_KEY_REUSED.",
+              "title": "Idempotency-Key"
+            },
+            "description": "Client-generated key (e.g. a UUID) that makes a retry return the original result. Scoped to the caller, the route and its target. Reusing a key with a different body returns 422 IDEMPOTENCY_KEY_REUSED."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompletionReport"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompletionResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED (or INVALID_CREDENTIALS on login): missing, invalid or revoked token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN: the caller may not perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND: the target does not exist or is not visible to the caller",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict: OFFER_UNAVAILABLE, INVALID_TRANSITION or ALREADY_COMPLETED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "VALIDATION_ERROR, or IDEMPOTENCY_KEY_REUSED for a reused key with a different body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "NOT_IMPLEMENTED: route is declared in the contract but not built yet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/failure-codes": {
+      "get": {
+        "tags": [
+          "catalog"
+        ],
+        "summary": "List Failure Codes",
+        "description": "Codes for an asset subtype, ordered and grouped by component (FR-7.1).",
+        "operationId": "list_failure_codes",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "subtype",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 64
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Subtype"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FailureCodeList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED (or INVALID_CREDENTIALS on login): missing, invalid or revoked token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "VALIDATION_ERROR, or IDEMPOTENCY_KEY_REUSED for a reused key with a different body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "NOT_IMPLEMENTED: route is declared in the contract but not built yet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/dispatch/workorders": {
+      "post": {
+        "tags": [
+          "dispatch"
+        ],
+        "summary": "Create Dispatch Workorder",
+        "description": "Create a WO with ranked candidates; offers rank 1 with `sla_deadline = now + sla_minutes`.",
+        "operationId": "create_dispatch_workorder",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9._:-]{8,128}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Client-generated key (e.g. a UUID) that makes a retry return the original result. Scoped to the caller, the route and its target. Reusing a key with a different body returns 422 IDEMPOTENCY_KEY_REUSED.",
+              "title": "Idempotency-Key"
+            },
+            "description": "Client-generated key (e.g. a UUID) that makes a retry return the original result. Scoped to the caller, the route and its target. Reusing a key with a different body returns 422 IDEMPOTENCY_KEY_REUSED."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DispatchCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DispatchCreateResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "UNAUTHENTICATED (or INVALID_CREDENTIALS on login): missing, invalid or revoked token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "FORBIDDEN: the caller may not perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "NOT_FOUND: the target does not exist or is not visible to the caller",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "VALIDATION_ERROR, or IDEMPOTENCY_KEY_REUSED for a reused key with a different body",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          },
+          "501": {
+            "description": "NOT_IMPLEMENTED: route is declared in the contract but not built yet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "AssetIdentity": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "subtype": {
+            "type": "string",
+            "title": "Subtype"
+          },
+          "make": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Make"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "install_year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Install Year"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location"
+          },
+          "duty": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duty"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "subtype"
+        ],
+        "title": "AssetIdentity"
+      },
+      "AssetRef": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "subtype": {
+            "type": "string",
+            "title": "Subtype"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "subtype"
+        ],
+        "title": "AssetRef"
+      },
+      "CalibrationLabel": {
+        "type": "string",
+        "enum": [
+          "MATCH",
+          "PARTIAL",
+          "MISS",
+          "NO_PREDICTION"
+        ],
+        "title": "CalibrationLabel"
+      },
+      "CandidateState": {
+        "type": "string",
+        "enum": [
+          "QUEUED",
+          "OFFERED",
+          "ACCEPTED",
+          "DECLINED",
+          "EXPIRED",
+          "WITHDRAWN"
+        ],
+        "title": "CandidateState"
+      },
+      "CompletionReport": {
+        "properties": {
+          "failure_code": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Failure Code"
+          },
+          "actual_fault_matched": {
+            "type": "boolean",
+            "title": "Actual Fault Matched"
+          },
+          "parts_used": {
+            "items": {
+              "$ref": "#/components/schemas/PartUsed"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "title": "Parts Used"
+          },
+          "labor_hours": {
+            "type": "number",
+            "multipleOf": 0.25,
+            "maximum": 24.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Labor Hours"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "technician_id": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Technician Id"
+          },
+          "photo_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "maxItems": 4,
+            "title": "Photo Ids"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "failure_code",
+          "actual_fault_matched",
+          "labor_hours",
+          "technician_id"
+        ],
+        "title": "CompletionReport",
+        "description": "`POST /workorders/{wo}/complete` body (FR-7.1). Bounds per D10 M-8.\n\nServer-only values (`label`, `actor`, `at`, predicted code) are never accepted from the body."
+      },
+      "CompletionResponse": {
+        "properties": {
+          "server_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Server Time",
+            "description": "Server clock at response time (ISO-8601 UTC)."
+          },
+          "calibration_label": {
+            "$ref": "#/components/schemas/CalibrationLabel"
+          },
+          "record_updated": {
+            "type": "boolean",
+            "const": true,
+            "title": "Record Updated"
+          }
+        },
+        "type": "object",
+        "required": [
+          "server_time",
+          "calibration_label",
+          "record_updated"
+        ],
+        "title": "CompletionResponse"
+      },
+      "Decision": {
+        "properties": {
+          "health_score": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 100.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Health Score"
+          },
+          "failure_risk": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FailureRisk"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "root_cause": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Root Cause"
+          },
+          "recommended_action": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recommended Action"
+          },
+          "evidence_summary": {
+            "type": "string",
+            "title": "Evidence Summary",
+            "description": "e.g. \"Based on 3 recent events + 2 active insights\""
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceItem"
+            },
+            "type": "array",
+            "title": "Evidence"
+          }
+        },
+        "type": "object",
+        "required": [
+          "evidence_summary"
+        ],
+        "title": "Decision",
+        "description": "Decision summary (FR-3.2). Without a packet: symptom-only, no cause or action (FR-3.4)."
+      },
+      "DeclineReason": {
+        "type": "string",
+        "enum": [
+          "too_far",
+          "no_capacity",
+          "wrong_skill",
+          "other"
+        ],
+        "title": "DeclineReason"
+      },
+      "DeclineRequest": {
+        "properties": {
+          "reason": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DeclineReason"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "DeclineRequest",
+        "description": "Optional reason (FR-4.2); an empty body `{}` declines with no reason (\"Skip\")."
+      },
+      "DispatchCandidateIn": {
+        "properties": {
+          "contractor_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Contractor Id"
+          },
+          "match_score": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Match Score"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "contractor_id",
+          "match_score",
+          "reason"
+        ],
+        "title": "DispatchCandidateIn"
+      },
+      "DispatchCreateRequest": {
+        "properties": {
+          "asset_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Asset Id"
+          },
+          "symptom": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Symptom"
+          },
+          "sla_minutes": {
+            "type": "integer",
+            "maximum": 1440.0,
+            "minimum": 1.0,
+            "title": "Sla Minutes"
+          },
+          "candidates": {
+            "items": {
+              "$ref": "#/components/schemas/DispatchCandidateIn"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Candidates",
+            "description": "Ranked best first; rank 1 is offered first."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "asset_id",
+          "symptom",
+          "sla_minutes",
+          "candidates"
+        ],
+        "title": "DispatchCreateRequest"
+      },
+      "DispatchCreateResponse": {
+        "properties": {
+          "server_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Server Time",
+            "description": "Server clock at response time (ISO-8601 UTC)."
+          },
+          "wo_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Wo Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "server_time",
+          "wo_id"
+        ],
+        "title": "DispatchCreateResponse"
+      },
+      "DispatchState": {
+        "type": "string",
+        "enum": [
+          "UNDISPATCHED",
+          "PENDING",
+          "ACCEPTED",
+          "IN_PROGRESS",
+          "COMPLETED",
+          "ESCALATED",
+          "NO_CONTRACTORS"
+        ],
+        "title": "DispatchState",
+        "description": "Dispatch states (spec §4.4). EXPIRED is per candidate, see `CandidateState`."
+      },
       "ErrorBody": {
         "properties": {
           "code": {
-            "type": "string",
-            "title": "Code"
+            "$ref": "#/components/schemas/ErrorCode"
           },
           "message": {
             "type": "string",
-            "title": "Message"
+            "title": "Message",
+            "description": "Human-readable text, safe to show to the user."
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OfferUnavailableReason"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Only on `OFFER_UNAVAILABLE`."
           }
         },
         "type": "object",
@@ -81,38 +2021,913 @@
         ],
         "title": "ErrorBody"
       },
+      "ErrorCode": {
+        "type": "string",
+        "enum": [
+          "INVALID_CREDENTIALS",
+          "RATE_LIMITED",
+          "UNAUTHENTICATED",
+          "FORBIDDEN",
+          "NOT_FOUND",
+          "METHOD_NOT_ALLOWED",
+          "OFFER_UNAVAILABLE",
+          "INVALID_TRANSITION",
+          "ALREADY_COMPLETED",
+          "VALIDATION_ERROR",
+          "IDEMPOTENCY_KEY_REUSED",
+          "PAYLOAD_TOO_LARGE",
+          "UNSUPPORTED_MEDIA_TYPE",
+          "NOT_IMPLEMENTED",
+          "NOT_READY",
+          "INTERNAL"
+        ],
+        "title": "ErrorCode",
+        "description": "Every `error.code` the API can return (spec §5; D12 adds IDEMPOTENCY_KEY_REUSED)."
+      },
       "ErrorEnvelope": {
         "properties": {
+          "server_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Server Time",
+            "description": "Server clock at response time (ISO-8601 UTC)."
+          },
           "error": {
             "$ref": "#/components/schemas/ErrorBody"
           }
         },
         "type": "object",
         "required": [
+          "server_time",
           "error"
         ],
         "title": "ErrorEnvelope",
-        "description": "`{\"error\": {\"code\": \"STRING\", \"message\": \"human text\"}}` — every API error."
+        "description": "`{\"error\": {\"code\": \"STRING\", \"message\": \"human text\"}, \"server_time\": ...}` (spec §5)."
       },
-      "HealthResponse": {
+      "EvidenceItem": {
         "properties": {
-          "status": {
+          "kind": {
             "type": "string",
-            "const": "ok",
-            "title": "Status"
+            "enum": [
+              "event",
+              "maintenance",
+              "insight"
+            ],
+            "title": "Kind"
           },
-          "server_time": {
+          "summary": {
             "type": "string",
-            "format": "date-time",
-            "title": "Server Time"
+            "title": "Summary"
+          },
+          "at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "At"
           }
         },
         "type": "object",
         "required": [
-          "status",
-          "server_time"
+          "kind",
+          "summary"
+        ],
+        "title": "EvidenceItem"
+      },
+      "FailureCode": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "subtype": {
+            "type": "string",
+            "title": "Subtype"
+          },
+          "component_group": {
+            "type": "string",
+            "title": "Component Group"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "subtype",
+          "component_group",
+          "label"
+        ],
+        "title": "FailureCode"
+      },
+      "FailureCodeList": {
+        "properties": {
+          "server_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Server Time",
+            "description": "Server clock at response time (ISO-8601 UTC)."
+          },
+          "failure_codes": {
+            "items": {
+              "$ref": "#/components/schemas/FailureCode"
+            },
+            "type": "array",
+            "title": "Failure Codes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "server_time",
+          "failure_codes"
+        ],
+        "title": "FailureCodeList",
+        "description": "`FailureCode[]` wrapped in an object so the body can carry `server_time` (spec §5)."
+      },
+      "FailureRisk": {
+        "type": "string",
+        "enum": [
+          "LOW",
+          "MEDIUM",
+          "HIGH",
+          "CRITICAL"
+        ],
+        "title": "FailureRisk",
+        "description": "Insmart failure-risk bands (COLOR_LANGUAGE §3)."
+      },
+      "HealthResponse": {
+        "properties": {
+          "server_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Server Time",
+            "description": "Server clock at response time (ISO-8601 UTC)."
+          },
+          "status": {
+            "type": "string",
+            "const": "ok",
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "server_time",
+          "status"
         ],
         "title": "HealthResponse"
+      },
+      "Insight": {
+        "properties": {
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          }
+        },
+        "type": "object",
+        "required": [
+          "summary"
+        ],
+        "title": "Insight"
+      },
+      "LifecycleEvent": {
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Event Id"
+          },
+          "type": {
+            "$ref": "#/components/schemas/LifecycleEventType"
+          },
+          "stage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LifecycleStage"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Set on ADVANCE."
+          },
+          "corrects_event_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Corrects Event Id",
+            "description": "Set on CORRECTION."
+          },
+          "actor_user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Actor User Id"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event_id",
+          "type",
+          "actor_user_id",
+          "at"
+        ],
+        "title": "LifecycleEvent",
+        "description": "One immutable lifecycle memory event (FR-6.1, FR-6.3)."
+      },
+      "LifecycleEventType": {
+        "type": "string",
+        "enum": [
+          "ADVANCE",
+          "CORRECTION"
+        ],
+        "title": "LifecycleEventType"
+      },
+      "LifecycleStage": {
+        "type": "string",
+        "enum": [
+          "EN_ROUTE",
+          "ARRIVED"
+        ],
+        "title": "LifecycleStage",
+        "description": "Derived from memory events (FR-6.1). Both sit inside backend `IN_PROGRESS`."
+      },
+      "LoginRequest": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "maxLength": 254,
+            "minLength": 1,
+            "title": "Email"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 1024,
+            "minLength": 1,
+            "title": "Password"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "LoginRequest"
+      },
+      "LoginResponse": {
+        "properties": {
+          "server_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Server Time",
+            "description": "Server clock at response time (ISO-8601 UTC)."
+          },
+          "access_token": {
+            "type": "string",
+            "title": "Access Token"
+          },
+          "token_type": {
+            "type": "string",
+            "title": "Token Type",
+            "description": "Always `bearer`.",
+            "default": "bearer"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserProfile"
+          }
+        },
+        "type": "object",
+        "required": [
+          "server_time",
+          "access_token",
+          "expires_at",
+          "user"
+        ],
+        "title": "LoginResponse",
+        "description": "`POST /auth/login`. Web keeps `access_token` server-side in an httpOnly cookie (FR-1.2)."
+      },
+      "MaintenanceRecord": {
+        "properties": {
+          "at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "At"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "performed_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Performed By"
+          }
+        },
+        "type": "object",
+        "required": [
+          "at",
+          "summary"
+        ],
+        "title": "MaintenanceRecord"
+      },
+      "MeResponse": {
+        "properties": {
+          "server_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Server Time",
+            "description": "Server clock at response time (ISO-8601 UTC)."
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          },
+          "tenant_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Tenant Id"
+          },
+          "contractor_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contractor Id"
+          },
+          "company": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company"
+          }
+        },
+        "type": "object",
+        "required": [
+          "server_time",
+          "user_id",
+          "name",
+          "role",
+          "tenant_id"
+        ],
+        "title": "MeResponse",
+        "description": "`GET /me`."
+      },
+      "OfferSummary": {
+        "properties": {
+          "wo_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Wo Id"
+          },
+          "asset": {
+            "$ref": "#/components/schemas/AssetRef"
+          },
+          "site": {
+            "$ref": "#/components/schemas/SiteRef"
+          },
+          "symptom": {
+            "type": "string",
+            "title": "Symptom"
+          },
+          "wo_source": {
+            "$ref": "#/components/schemas/WoSource"
+          },
+          "dispatch_state": {
+            "$ref": "#/components/schemas/DispatchState"
+          },
+          "lifecycle_stage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LifecycleStage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "sla_deadline": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sla Deadline"
+          },
+          "match_score": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Match Score",
+            "description": "The caller's own match score, 0 to 1."
+          },
+          "match_reason": {
+            "type": "string",
+            "title": "Match Reason"
+          },
+          "teaser": {
+            "$ref": "#/components/schemas/Teaser"
+          },
+          "health_score": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 100.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Health Score"
+          },
+          "failure_risk": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FailureRisk"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "last_advanced_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Advanced At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "wo_id",
+          "asset",
+          "site",
+          "symptom",
+          "wo_source",
+          "dispatch_state",
+          "match_score",
+          "match_reason",
+          "teaser"
+        ],
+        "title": "OfferSummary",
+        "description": "One inbox card (spec §5 OfferSummary)."
+      },
+      "OfferUnavailableReason": {
+        "type": "string",
+        "enum": [
+          "expired",
+          "reassigned",
+          "withdrawn"
+        ],
+        "title": "OfferUnavailableReason",
+        "description": "`reason` on `409 OFFER_UNAVAILABLE` (spec §5). Never names another candidate (D10 Q1)."
+      },
+      "OwnerWorkOrderDetail": {
+        "properties": {
+          "server_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Server Time",
+            "description": "Server clock at response time (ISO-8601 UTC)."
+          },
+          "wo_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Wo Id"
+          },
+          "asset": {
+            "$ref": "#/components/schemas/AssetRef"
+          },
+          "site": {
+            "$ref": "#/components/schemas/SiteRef"
+          },
+          "symptom": {
+            "type": "string",
+            "title": "Symptom"
+          },
+          "wo_source": {
+            "$ref": "#/components/schemas/WoSource"
+          },
+          "dispatch_state": {
+            "$ref": "#/components/schemas/DispatchState"
+          },
+          "lifecycle_stage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LifecycleStage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "sla_deadline": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sla Deadline"
+          },
+          "match_score": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Match Score",
+            "description": "The caller's own match score, 0 to 1."
+          },
+          "match_reason": {
+            "type": "string",
+            "title": "Match Reason"
+          },
+          "teaser": {
+            "$ref": "#/components/schemas/Teaser"
+          },
+          "health_score": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 100.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Health Score"
+          },
+          "failure_risk": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FailureRisk"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "last_advanced_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Advanced At"
+          },
+          "decision": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Decision"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "pre_diagnostic_available": {
+            "type": "boolean",
+            "title": "Pre Diagnostic Available"
+          },
+          "packet": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Packet"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lifecycle_history": {
+            "items": {
+              "$ref": "#/components/schemas/LifecycleEvent"
+            },
+            "type": "array",
+            "title": "Lifecycle History"
+          },
+          "predicted_failure_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Predicted Failure Code"
+          },
+          "ranked_candidates": {
+            "items": {
+              "$ref": "#/components/schemas/RankedCandidate"
+            },
+            "type": "array",
+            "title": "Ranked Candidates"
+          }
+        },
+        "type": "object",
+        "required": [
+          "server_time",
+          "wo_id",
+          "asset",
+          "site",
+          "symptom",
+          "wo_source",
+          "dispatch_state",
+          "match_score",
+          "match_reason",
+          "teaser",
+          "pre_diagnostic_available",
+          "lifecycle_history",
+          "ranked_candidates"
+        ],
+        "title": "OwnerWorkOrderDetail",
+        "description": "Owner/FM view (FR-10.1): the contractor view plus the ranked candidate list."
+      },
+      "Packet": {
+        "properties": {
+          "asset_identity": {
+            "$ref": "#/components/schemas/AssetIdentity"
+          },
+          "recent_events": {
+            "items": {
+              "$ref": "#/components/schemas/PacketEvent"
+            },
+            "type": "array",
+            "title": "Recent Events"
+          },
+          "recent_maintenance": {
+            "items": {
+              "$ref": "#/components/schemas/MaintenanceRecord"
+            },
+            "type": "array",
+            "title": "Recent Maintenance"
+          },
+          "active_insights": {
+            "items": {
+              "$ref": "#/components/schemas/Insight"
+            },
+            "type": "array",
+            "title": "Active Insights"
+          },
+          "predicted_parts": {
+            "items": {
+              "$ref": "#/components/schemas/PredictedPart"
+            },
+            "type": "array",
+            "title": "Predicted Parts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "asset_identity",
+          "recent_events",
+          "recent_maintenance",
+          "active_insights",
+          "predicted_parts"
+        ],
+        "title": "Packet",
+        "description": "Pre-diagnostic packet sections (FR-3.3)."
+      },
+      "PacketEvent": {
+        "properties": {
+          "at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "At"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          }
+        },
+        "type": "object",
+        "required": [
+          "at",
+          "kind",
+          "summary"
+        ],
+        "title": "PacketEvent"
+      },
+      "PartUsed": {
+        "properties": {
+          "part_code": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Part Code"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Description"
+          },
+          "qty": {
+            "type": "integer",
+            "maximum": 999.0,
+            "minimum": 1.0,
+            "title": "Qty"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "description",
+          "qty"
+        ],
+        "title": "PartUsed"
+      },
+      "PhotoResponse": {
+        "properties": {
+          "server_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Server Time",
+            "description": "Server clock at response time (ISO-8601 UTC)."
+          },
+          "photo_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Photo Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "server_time",
+          "photo_id"
+        ],
+        "title": "PhotoResponse"
+      },
+      "PredictedPart": {
+        "properties": {
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "part_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Part Code"
+          },
+          "qty": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Qty"
+          },
+          "likelihood": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Likelihood"
+          }
+        },
+        "type": "object",
+        "required": [
+          "description",
+          "qty"
+        ],
+        "title": "PredictedPart"
+      },
+      "RankedCandidate": {
+        "properties": {
+          "contractor_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Contractor Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "rank": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Rank"
+          },
+          "match_score": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Match Score"
+          },
+          "match_reason": {
+            "type": "string",
+            "title": "Match Reason"
+          },
+          "state": {
+            "$ref": "#/components/schemas/CandidateState"
+          }
+        },
+        "type": "object",
+        "required": [
+          "contractor_id",
+          "name",
+          "rank",
+          "match_score",
+          "match_reason",
+          "state"
+        ],
+        "title": "RankedCandidate"
       },
       "ReadyChecks": {
         "properties": {
@@ -130,6 +2945,12 @@
       },
       "ReadyResponse": {
         "properties": {
+          "server_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Server Time",
+            "description": "Server clock at response time (ISO-8601 UTC)."
+          },
           "status": {
             "type": "string",
             "const": "ready",
@@ -137,20 +2958,428 @@
           },
           "checks": {
             "$ref": "#/components/schemas/ReadyChecks"
-          },
-          "server_time": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Server Time"
           }
         },
         "type": "object",
         "required": [
+          "server_time",
           "status",
-          "checks",
-          "server_time"
+          "checks"
         ],
         "title": "ReadyResponse"
+      },
+      "Role": {
+        "type": "string",
+        "enum": [
+          "contractor",
+          "owner",
+          "fm"
+        ],
+        "title": "Role"
+      },
+      "ScheduleResponse": {
+        "properties": {
+          "server_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Server Time",
+            "description": "Server clock at response time (ISO-8601 UTC)."
+          },
+          "offers": {
+            "items": {
+              "$ref": "#/components/schemas/OfferSummary"
+            },
+            "type": "array",
+            "title": "Offers"
+          },
+          "active": {
+            "items": {
+              "$ref": "#/components/schemas/OfferSummary"
+            },
+            "type": "array",
+            "title": "Active"
+          },
+          "voice_bookings": {
+            "items": {
+              "$ref": "#/components/schemas/OfferSummary"
+            },
+            "type": "array",
+            "title": "Voice Bookings",
+            "description": "Always empty in v1 (FR-2.1)."
+          }
+        },
+        "type": "object",
+        "required": [
+          "server_time",
+          "offers",
+          "active",
+          "voice_bookings"
+        ],
+        "title": "ScheduleResponse",
+        "description": "`GET /contractor/{cid}/schedule` and `GET /me/schedule` (FR-2.1, FR-2.2).\n\n`offers` sorted by soonest `sla_deadline`; `active` by most recent `last_advanced_at`."
+      },
+      "SiteRef": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "location": {
+            "type": "string",
+            "title": "Location"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "location"
+        ],
+        "title": "SiteRef"
+      },
+      "Teaser": {
+        "properties": {
+          "likely_cause": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Likely Cause"
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          }
+        },
+        "type": "object",
+        "title": "Teaser",
+        "description": "Packet teaser on the card: \"Likely: X · NN% match\" (FR-2.3). Empty when no packet."
+      },
+      "TransitionAction": {
+        "type": "string",
+        "enum": [
+          "advance",
+          "undo"
+        ],
+        "title": "TransitionAction"
+      },
+      "TransitionRequest": {
+        "properties": {
+          "action": {
+            "$ref": "#/components/schemas/TransitionAction"
+          },
+          "stage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LifecycleStage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "corrects_event_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Corrects Event Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "action"
+        ],
+        "title": "TransitionRequest",
+        "description": "`advance` needs `stage`. `undo` corrects `corrects_event_id`, or the latest advance (H-4)."
+      },
+      "TransitionResponse": {
+        "properties": {
+          "server_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Server Time",
+            "description": "Server clock at response time (ISO-8601 UTC)."
+          },
+          "lifecycle_stage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LifecycleStage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "event_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Event Id"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/LifecycleEvent"
+            },
+            "type": "array",
+            "title": "History"
+          }
+        },
+        "type": "object",
+        "required": [
+          "server_time",
+          "lifecycle_stage",
+          "event_id",
+          "history"
+        ],
+        "title": "TransitionResponse"
+      },
+      "UserProfile": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "role": {
+            "$ref": "#/components/schemas/Role"
+          },
+          "tenant_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Tenant Id"
+          },
+          "contractor_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contractor Id"
+          },
+          "company": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "name",
+          "role",
+          "tenant_id"
+        ],
+        "title": "UserProfile",
+        "description": "The signed-in user. `contractor_id` is present only for the contractor role (FR-1.4)."
+      },
+      "WoSource": {
+        "type": "string",
+        "enum": [
+          "dispatch",
+          "voice"
+        ],
+        "title": "WoSource",
+        "description": "Where the work order came from. `voice` is the Voicequest seam (FR-2.1, D§14)."
+      },
+      "WorkOrderDetail": {
+        "properties": {
+          "server_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Server Time",
+            "description": "Server clock at response time (ISO-8601 UTC)."
+          },
+          "wo_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Wo Id"
+          },
+          "asset": {
+            "$ref": "#/components/schemas/AssetRef"
+          },
+          "site": {
+            "$ref": "#/components/schemas/SiteRef"
+          },
+          "symptom": {
+            "type": "string",
+            "title": "Symptom"
+          },
+          "wo_source": {
+            "$ref": "#/components/schemas/WoSource"
+          },
+          "dispatch_state": {
+            "$ref": "#/components/schemas/DispatchState"
+          },
+          "lifecycle_stage": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LifecycleStage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "sla_deadline": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sla Deadline"
+          },
+          "match_score": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Match Score",
+            "description": "The caller's own match score, 0 to 1."
+          },
+          "match_reason": {
+            "type": "string",
+            "title": "Match Reason"
+          },
+          "teaser": {
+            "$ref": "#/components/schemas/Teaser"
+          },
+          "health_score": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 100.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Health Score"
+          },
+          "failure_risk": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FailureRisk"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "last_advanced_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Advanced At"
+          },
+          "decision": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Decision"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "pre_diagnostic_available": {
+            "type": "boolean",
+            "title": "Pre Diagnostic Available"
+          },
+          "packet": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Packet"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lifecycle_history": {
+            "items": {
+              "$ref": "#/components/schemas/LifecycleEvent"
+            },
+            "type": "array",
+            "title": "Lifecycle History"
+          },
+          "predicted_failure_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Predicted Failure Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "server_time",
+          "wo_id",
+          "asset",
+          "site",
+          "symptom",
+          "wo_source",
+          "dispatch_state",
+          "match_score",
+          "match_reason",
+          "teaser",
+          "pre_diagnostic_available",
+          "lifecycle_history"
+        ],
+        "title": "WorkOrderDetail",
+        "description": "Contractor view (spec §5). Never includes `ranked_candidates` (FR-3.5)."
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "description": "JWT from `POST /v1/auth/login`; revoked by `POST /v1/auth/logout` (D11).",
+        "scheme": "bearer"
       }
     }
   }

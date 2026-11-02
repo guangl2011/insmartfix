@@ -2,7 +2,8 @@
 
 from fastapi import FastAPI
 
-from app.routes import health
+from app.core.errors import install_error_handlers
+from app.routes import auth, catalog, contractor, dispatch, health, workorders
 
 API_PREFIX = "/v1"
 
@@ -13,7 +14,9 @@ def create_app() -> FastAPI:
         version="1.0.0",
         description="Contract: docs/specs/INSMARTFIX_V1_SPEC.md §5.",
     )
-    app.include_router(health.router, prefix=API_PREFIX)
+    install_error_handlers(app)
+    for module in (health, auth, contractor, workorders, catalog, dispatch):
+        app.include_router(module.router, prefix=API_PREFIX)
     return app
 
 

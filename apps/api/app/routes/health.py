@@ -7,8 +7,10 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
 from app.clock import now
+from app.contract.common import ErrorCode, ErrorEnvelope
+from app.contract.health import HealthResponse, ReadyChecks, ReadyResponse
+from app.core.errors import error_response
 from app.db.session import get_engine, ping
-from app.schemas import ErrorEnvelope, HealthResponse, ReadyChecks, ReadyResponse
 from app.settings import Settings, get_settings
 
 logger = logging.getLogger(__name__)
@@ -35,11 +37,5 @@ def readyz(
         ping(get_engine(settings.database_url))
     except Exception as exc:  # any driver/network error means "not ready"
         logger.warning("readyz: database check failed: %s", type(exc).__name__)
-        body = ErrorEnvelope.model_validate(
-            {"error": {"code": "NOT_READY", "message": "Database is unavailable."}}
-        )
-        return JSONResponse(
-            status_code=503,
-            content={**body.model_dump(), "server_time": now().isoformat()},
-        )
+        return error_response(503, ErrorCode.NOT_READY, "Database is unavailable.")
     return ReadyResponse(status="ready", checks=ReadyChecks(database="ok"), server_time=now())
