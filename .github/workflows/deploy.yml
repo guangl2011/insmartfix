@@ -5,8 +5,9 @@
 #               (configure required reviewers on that environment to make the approval explicit).
 #
 # Every job after `gate` is SKIPPED unless the environment holds the secret DEPLOY_TOKEN.
-# Secrets needed (GitHub environment secrets, never in the repo): DEPLOY_TOKEN, DATABASE_URL,
-# JWT_SECRET, S3_ENDPOINT_URL, S3_BUCKET, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY; mobile: EXPO_TOKEN.
+# Secrets needed (GitHub environment secrets, never in the repo): DEPLOY_TOKEN, DATABASE_URL
+# (runtime role insmartfix_app), MIGRATIONS_DATABASE_URL (schema owner; D10 H-5), JWT_SECRET,
+# S3_ENDPOINT_URL, S3_BUCKET, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY; mobile: EXPO_TOKEN.
 name: Deploy
 
 on:
@@ -104,7 +105,7 @@ jobs:
     steps:
       - name: Run Alembic migrations with the new API image
         run: |
-          echo "Stub: run 'alembic upgrade head' in the API image against the ${{ needs.gate.outputs.target }} DATABASE_URL"
+          echo "Stub: run 'alembic upgrade head' in the API image against the ${{ needs.gate.outputs.target }} MIGRATIONS_DATABASE_URL"
           echo "on the chosen host (spec D8). Implemented at S6 by the devops agent."
 
   deploy:
