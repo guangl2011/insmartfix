@@ -1,4 +1,9 @@
-/* Colors come only from @insmartfix/tokens (COLOR_LANGUAGE v1.3). App = light register. */
+/* Colors come only from @insmartfix/tokens (COLOR_LANGUAGE v1.3). App = light register.
+   Tailwind utilities come from the ui-web preset (tailwind.config.ts). */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 *,
 *::before,
 *::after {
