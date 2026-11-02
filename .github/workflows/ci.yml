@@ -81,7 +81,7 @@ jobs:
           S3_BUCKET: insmartfix-test
           S3_ACCESS_KEY_ID: ci-minio
           S3_SECRET_ACCESS_KEY: ci-minio-only
-        run: uv run pytest --cov --cov-report=term --cov-report=json --cov-report=xml
+        run: uv run pytest --cov --cov-report=term --cov-report=json --cov-report=xml --junitxml=test-results/junit-api.xml
       - name: Alembic migrations apply cleanly
         env:
           DATABASE_URL: postgresql+psycopg://insmartfix_app:ci-app-only@localhost:5432/insmartfix_test
@@ -96,6 +96,12 @@ jobs:
         with:
           name: coverage-api
           path: apps/api/coverage.xml
+          if-no-files-found: ignore
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: test-results-api
+          path: apps/api/test-results
           if-no-files-found: ignore
 
   js:
@@ -119,8 +125,16 @@ jobs:
         run: pnpm turbo run lint typecheck
       - name: prettier
         run: pnpm exec prettier --check .
-      - name: Unit tests with coverage thresholds (vitest / jest)
-        run: pnpm turbo run test:coverage
+      # JUnit (vitest) and jest JSON results feed the spec-conformance job.
+      - name: Unit tests with coverage thresholds (vitest)
+        run: >-
+          pnpm turbo run test:coverage --filter=!@insmartfix/mobile --
+          --reporter=default --reporter=junit --outputFile.junit=test-results/junit.xml
+      - name: Unit tests with coverage thresholds (jest)
+        run: |
+          mkdir -p apps/mobile/test-results  # jest doesn't create the --outputFile directory
+          pnpm turbo run test:coverage --filter=@insmartfix/mobile -- \
+            --json --outputFile=test-results/jest.json
       - name: Coverage summary
         if: always()
         run: node scripts/coverage-summary.mjs >> "$GITHUB_STEP_SUMMARY"
@@ -131,6 +145,16 @@ jobs:
           path: |
             apps/*/coverage/lcov.info
             packages/*/coverage/lcov.info
+          if-no-files-found: ignore
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: test-results-js
+          path: |
+            apps/*/test-results/*.xml
+            apps/*/test-results/*.json
+            packages/*/test-results/*.xml
+            tools/*/test-results/*.xml
           if-no-files-found: ignore
 
   contracts:
@@ -284,7 +308,9 @@ jobs:
         if: steps.pw-cache.outputs.cache-hit == 'true'
         run: pnpm --filter @insmartfix/web exec playwright install-deps chromium webkit
       - name: Playwright smoke (Pixel 7, iPhone 14, desktop)
-        run: pnpm --filter @insmartfix/web exec playwright test --grep @smoke
+        env:
+          PLAYWRIGHT_JUNIT_OUTPUT_FILE: ${{ github.workspace }}/pw-results/junit-playwright.xml
+        run: pnpm --filter @insmartfix/web exec playwright test --grep @smoke --reporter=list,html,github,junit
       - name: Compose logs on failure
         if: failure()
         run: docker compose -f infra/docker-compose.yml logs --no-color --tail 200
@@ -294,14 +320,55 @@ jobs:
           name: playwright-smoke-report
           path: apps/web/playwright-report
           if-no-files-found: ignore
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: test-results-e2e-smoke
+          path: pw-results
+          if-no-files-found: ignore
       - name: Stop the stack
         if: always()
         run: docker compose -f infra/docker-compose.yml down -v
 
+  spec-conformance:
+    # DEVELOPMENT_PROCESS §2 step 5: every T-ID in the PR body names a real test that passed in
+    # this run, and every FR/NFR ID is in the spec. A body with no T-IDs passes with a note.
+    name: Spec conformance (PR body vs test results)
+    if: always()
+    needs: [api, js, e2e-smoke]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: test-results-*
+          path: test-results
+      - name: Fetch the current PR body
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          EVENT_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          # The live body, so a corrected description counts on re-run; the event copy otherwise.
+          gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" --jq '.body // ""' > "$RUNNER_TEMP/pr-body.md" \
+            || printf '%s' "$EVENT_BODY" > "$RUNNER_TEMP/pr-body.md"
+      - name: Check requirement and test IDs
+        run: |
+          touch "$RUNNER_TEMP/pr-body.md"
+          node tools/spec-conformance/check.ts --body-file "$RUNNER_TEMP/pr-body.md" --results test-results
+
   ci-ok:
     name: ci-ok
     if: always()
-    needs: [api, js, contracts, build, security, e2e-smoke]
+    needs: [api, js, contracts, build, security, e2e-smoke, spec-conformance]
     runs-on: ubuntu-latest
     steps:
       - name: All required jobs passed

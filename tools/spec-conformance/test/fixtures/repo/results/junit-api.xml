@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<testsuites><testsuite name="pytest" tests="2">
+<testcase classname="tests.test_auth" name="test_T_AUTH_10_jwt_algorithms_pinned" time="0.01" />
+<testcase classname="tests.test_auth" name="test_T_INBOX_5_accept_race" time="0.02"><failure message="assert 409 == 200">trace &amp; more</failure></testcase>
+</testsuite></testsuites>
