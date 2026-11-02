@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from app.contract.common import ErrorCode
 from app.contract.schedule import DeclineRequest
 from app.core.errors import ApiError
-from app.dispatch.accept import is_bound, is_live_offeree, lock, unavailable
+from app.dispatch.accept import is_bound, is_live_offeree, lazy_expire_own, lock, unavailable
 from app.dispatch.reoffer import reoffer_next
 
 
@@ -19,6 +19,7 @@ def decline(
     locked = lock(db, wo_id, contractor_id)
     if is_bound(locked, contractor_id):
         raise ApiError(409, ErrorCode.INVALID_TRANSITION)  # a bound job is not an offer
+    lazy_expire_own(db, locked, contractor_id, now)
     if not is_live_offeree(locked, contractor_id, now):
         raise unavailable(locked, contractor_id)
     assert locked.candidate is not None  # noqa: S101

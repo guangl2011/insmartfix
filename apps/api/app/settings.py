@@ -43,6 +43,9 @@ class Settings(BaseSettings):
     # D10 M-7: peers (CIDRs) whose X-Forwarded-For is believed for the login rate-limit key, i.e.
     # the web BFF or the platform load balancer. Empty: always use the socket peer.
     trusted_proxies: list[str] = Field(default_factory=list)
+    # FR-5.2: background SLA sweeper (single-flight across instances via an advisory lock).
+    sweeper_enabled: bool = True
+    sweeper_interval_seconds: float = Field(default=15.0, gt=0)
 
     @field_validator("database_url")
     @classmethod

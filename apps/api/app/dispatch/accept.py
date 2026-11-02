@@ -15,9 +15,10 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.contract.common import ErrorCode
+from app.contract.common import ErrorCode, OfferUnavailableReason
 from app.core.errors import ApiError
 from app.db.models import Dispatch, DispatchCandidate, WorkOrder
+from app.dispatch.expiry import expire_locked, is_due
 from app.identity_gate.policy import WorkOrderFacts, past_reason
 
 BOUND_STATES = ("ACCEPTED", "IN_PROGRESS", "COMPLETED")
@@ -70,12 +71,24 @@ def unavailable(locked: Locked, contractor_id: UUID) -> ApiError:
     return ApiError(409, ErrorCode.OFFER_UNAVAILABLE, reason=past_reason(contractor_id, facts))
 
 
+def lazy_expire_own(db: Session, locked: Locked, contractor_id: UUID, now: datetime) -> None:
+    """FR-5.2 lazy expiry inside the lock, for the requester's own due offer: commit the expiry
+    and re-offer (it is legitimate state), then the caller answers 409 `expired`. Another
+    candidate's request never triggers it (D10 H-2: a miss changes nothing)."""
+    if locked.dispatch.current_contractor_id == contractor_id and is_due(locked.dispatch, now):
+        expire_locked(db, locked.dispatch, now)
+        err = ApiError(409, ErrorCode.OFFER_UNAVAILABLE, reason=OfferUnavailableReason.EXPIRED)
+        db.commit()
+        raise err
+
+
 def accept(db: Session, wo_id: UUID, contractor_id: UUID, now: datetime) -> None:
     """Bind the WO to the contractor (dispatch → ACCEPTED). A retry by the already-bound
     contractor is a no-op success (it never re-binds or re-offers, §2.1 row 15)."""
     locked = lock(db, wo_id, contractor_id)
     if is_bound(locked, contractor_id):
         return
+    lazy_expire_own(db, locked, contractor_id, now)
     if not is_live_offeree(locked, contractor_id, now):
         raise unavailable(locked, contractor_id)
     assert locked.candidate is not None  # noqa: S101 — is_live_offeree checked it

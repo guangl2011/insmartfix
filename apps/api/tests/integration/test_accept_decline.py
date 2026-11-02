@@ -113,10 +113,11 @@ def test_accept_binds_and_returns_the_detail_synchronously(
     assert sched["offers"] == []
 
 
-def test_accept_after_deadline_is_409_expired_and_changes_nothing(
+def test_accept_after_deadline_is_409_expired_and_lazily_reoffers(
     api: TestClient, t: Tenant, app_engine: Engine
 ) -> None:
-    m = t.contractors["marco"]
+    """FR-5.2: the late accept itself triggers the (committed) expiry and re-offer."""
+    m, a = t.contractors["marco"], t.contractors["ana"]
     wo = _offer(
         app_engine,
         t,
@@ -124,11 +125,12 @@ def test_accept_after_deadline_is_409_expired_and_changes_nothing(
         "marco",
         deadline=wall_now() - timedelta(seconds=1),
     )
-    before = _dispatch(app_engine, wo)
     res = api.post(f"/v1/me/accept/{wo}", headers=m.auth)
     assert res.status_code == 409
     assert res.json()["error"]["reason"] == "expired"
-    assert _dispatch(app_engine, wo) == before
+    d = _dispatch(app_engine, wo)
+    assert (d["state"], d["current_contractor_id"], d["version"]) == ("PENDING", a.cid, 1)
+    assert _cands(app_engine, wo)[m.cid]["state"] == "EXPIRED"
 
 
 def test_T_INBOX_5_stale_offer_race_marco_taps_accept_after_reassignment(
@@ -396,3 +398,24 @@ def test_lock_requires_an_existing_dispatch(app_engine: Engine, t: Tenant) -> No
     with Session(app_engine) as db, pytest.raises(NoResultFound):
         lock(db, uuid.uuid4(), t.contractors["marco"].cid)
     _ = Person
+
+
+def test_offer_due_by_the_time_the_lock_is_taken_is_expired_and_committed(
+    app_engine: Engine, t: Tenant
+) -> None:
+    """The gate saw a live offer; by the lock its deadline has passed: expiry is committed,
+    the answer is 409 expired (FR-5.2 inside the lock)."""
+    m, a = t.contractors["marco"], t.contractors["ana"]
+    deadline = wall_now() + timedelta(seconds=30)
+    wo = _offer(
+        app_engine, t, [("marco", "OFFERED"), ("ana", "QUEUED")], "marco", deadline=deadline
+    )
+    with Session(app_engine) as db, pytest.raises(ApiError) as first:
+        accept(db, wo, m.cid, deadline + timedelta(seconds=1))
+    # Now Ana holds it; her own late decline expires it in turn (nobody left).
+    with Session(app_engine) as db, pytest.raises(ApiError) as second:
+        decline(db, wo, a.cid, DeclineRequest(), deadline + timedelta(minutes=20))
+    for exc in (first, second):
+        assert (exc.value.status_code, exc.value.reason) == (409, "expired")
+    d = _dispatch(app_engine, wo)
+    assert (d["state"], d["current_contractor_id"]) == ("NO_CONTRACTORS", None)
