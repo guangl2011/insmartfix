@@ -9,7 +9,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./status": "./src/status.ts",
-    "./tokens.css": "./tokens.css"
+    "./tokens.css": "./tokens.css",
+    "./eslint": "./eslint/index.mjs"
   },
   "scripts": {
     "generate": "tsx scripts/generate-css.ts",
@@ -21,7 +22,9 @@
   "devDependencies": {
     "@types/node": "22.20.5",
     "@vitest/coverage-v8": "4.1.12",
+    "eslint": "9.39.5",
     "tsx": "4.23.15",
+    "typescript-eslint": "8.72.1",
     "vitest": "4.1.12"
   }
 }
