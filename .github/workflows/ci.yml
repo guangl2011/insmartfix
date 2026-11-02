@@ -292,8 +292,12 @@ jobs:
         run: |
           cp infra/.env.example infra/.env
           docker compose -f infra/docker-compose.yml up -d --build --wait --wait-timeout 300
-      - name: Seed (stub until M1)
-        run: make seed
+      - name: Seed TEST_PLAN §5 fixtures (per-run test password, never committed)
+        run: |
+          SEED_PASSWORD="$(openssl rand -hex 24)"
+          echo "::add-mask::$SEED_PASSWORD"
+          echo "SEED_PASSWORD=$SEED_PASSWORD" >> "$GITHUB_ENV"
+          SEED_PASSWORD="$SEED_PASSWORD" make seed
       - id: pw
         run: echo "version=$(pnpm --filter @insmartfix/web exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
