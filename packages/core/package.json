@@ -17,6 +17,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "devDependencies": {
+    "@insmartfix/contracts": "workspace:*",
     "@vitest/coverage-v8": "4.1.12",
     "vitest": "4.1.12"
   }
