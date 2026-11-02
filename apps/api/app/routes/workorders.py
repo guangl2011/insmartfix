@@ -1,7 +1,12 @@
-"""Work-order routes (spec §5; FR-3, FR-6, FR-7). Stubs until M2-T2/T3/T5/T6."""
+"""Work-order routes (spec §5; FR-3, FR-6, FR-7). Detail, photos, complete: M2-T2/T6/T5."""
 
+from typing import Annotated
+
+from fastapi import Depends, Request
 from fastapi.responses import JSONResponse
+from sqlalchemy.orm import Session
 
+from app.clock import now
 from app.contract.common import IdempotencyKeyHeader, error_responses
 from app.contract.workorders import (
     CompletionReport,
@@ -12,12 +17,17 @@ from app.contract.workorders import (
     TransitionResponse,
     WorkOrderDetail,
 )
+from app.core.idempotency import canonical_hash, idempotency_request
+from app.db.session import get_db
 from app.identity_gate.deps import Authorized, gated_router
 from app.identity_gate.policy import Action
 from app.routes import API_PREFIX
 from app.routes._stub import not_implemented
+from app.workorders.transition import transition
 
 router = gated_router(prefix=API_PREFIX, tags=["workorders"])
+DbSession = Annotated[Session, Depends(get_db)]
+TRANSITION_ROUTE = API_PREFIX + "/workorders/{wo}/transition"
 
 
 @router.get(
@@ -33,17 +43,44 @@ def get_workorder(target: Authorized) -> JSONResponse:
 
 
 @router.post(
-    "/workorders/{wo}/transition",
+    TRANSITION_ROUTE.removeprefix(API_PREFIX),
     action=Action.TRANSITION,
     operation_id="transition_workorder",
     response_model=TransitionResponse,
-    responses=error_responses(401, 403, 404, 409, 422, 501),
+    responses=error_responses(401, 403, 404, 409, 422),
 )
 def transition_workorder(
-    target: Authorized, body: TransitionRequest, idempotency_key: IdempotencyKeyHeader = None
-) -> JSONResponse:
-    """Advance EN_ROUTE → ARRIVED, or undo via a CORRECTION event (FR-6.1, FR-6.3, FR-6.4)."""
-    return not_implemented()
+    target: Authorized,
+    body: TransitionRequest,
+    request: Request,
+    db: DbSession,
+    idempotency_key: IdempotencyKeyHeader = None,
+) -> TransitionResponse | JSONResponse:
+    """Advance EN_ROUTE → ARRIVED, or undo via a CORRECTION event (FR-6.1, FR-6.3, FR-6.4).
+    The same `Idempotency-Key` returns the original result (D10 H-3); with a different body,
+    422 IDEMPOTENCY_KEY_REUSED (D12)."""
+    assert target.wo is not None  # noqa: S101 — the gate allowed a bound contractor (row 14)
+    at = now()
+    idem = idempotency_request(
+        key=idempotency_key,
+        user_id=target.principal.user_id,
+        method=request.method,
+        route_template=TRANSITION_ROUTE,
+        target_id=target.wo.wo_id,
+        request_hash=canonical_hash(body),
+    )
+    result = transition(
+        db,
+        wo_id=target.wo.wo_id,
+        actor_user_id=target.principal.user_id,
+        body=body,
+        idem=idem,
+        now=at,
+    )
+    db.commit()
+    if isinstance(result, dict):  # idempotent replay of the stored response
+        return JSONResponse({**result, "server_time": at.isoformat()})
+    return result
 
 
 @router.post(

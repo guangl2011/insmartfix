@@ -257,6 +257,8 @@ export interface paths {
         /**
          * Transition Workorder
          * @description Advance EN_ROUTE → ARRIVED, or undo via a CORRECTION event (FR-6.1, FR-6.3, FR-6.4).
+         *     The same `Idempotency-Key` returns the original result (D10 H-3); with a different body,
+         *     422 IDEMPOTENCY_KEY_REUSED (D12).
          */
         post: operations["transition_workorder"];
         delete?: never;
@@ -1755,15 +1757,6 @@ export interface operations {
             };
             /** @description VALIDATION_ERROR, or IDEMPOTENCY_KEY_REUSED for a reused key with a different body */
             422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorEnvelope"];
-                };
-            };
-            /** @description NOT_IMPLEMENTED: route is declared in the contract but not built yet */
-            501: {
                 headers: {
                     [name: string]: unknown;
                 };

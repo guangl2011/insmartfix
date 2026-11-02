@@ -896,7 +896,7 @@
           "workorders"
         ],
         "summary": "Transition Workorder",
-        "description": "Advance EN_ROUTE → ARRIVED, or undo via a CORRECTION event (FR-6.1, FR-6.3, FR-6.4).",
+        "description": "Advance EN_ROUTE → ARRIVED, or undo via a CORRECTION event (FR-6.1, FR-6.3, FR-6.4).\nThe same `Idempotency-Key` returns the original result (D10 H-3); with a different body,\n422 IDEMPOTENCY_KEY_REUSED (D12).",
         "operationId": "transition_workorder",
         "security": [
           {
@@ -997,16 +997,6 @@
           },
           "422": {
             "description": "VALIDATION_ERROR, or IDEMPOTENCY_KEY_REUSED for a reused key with a different body",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorEnvelope"
-                }
-              }
-            }
-          },
-          "501": {
-            "description": "NOT_IMPLEMENTED: route is declared in the contract but not built yet",
             "content": {
               "application/json": {
                 "schema": {

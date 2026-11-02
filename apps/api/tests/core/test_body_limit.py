@@ -49,7 +49,15 @@ def test_garbage_content_length_rejected() -> None:
 
 def test_small_json_and_large_multipart_pass_the_limit() -> None:
     c = TestClient(authed_app())
-    ok = c.post("/v1/workorders/" + WO + "/transition", json={"action": "advance"})
+    ok = c.post(
+        "/v1/workorders/" + WO + "/complete",
+        json={
+            "failure_code": "X",
+            "actual_fault_matched": True,
+            "labor_hours": 1,
+            "technician_id": "M",
+        },
+    )
     assert ok.status_code == 501  # reaches the stub
     photo = c.post(
         f"/v1/workorders/{WO}/photos",
