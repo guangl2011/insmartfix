@@ -6,9 +6,10 @@ from fastapi.responses import JSONResponse
 from app.contract.common import IdempotencyKeyHeader, error_responses
 from app.contract.dispatch import DispatchCreateRequest, DispatchCreateResponse
 from app.contract.security import bearer_scheme
+from app.routes import API_PREFIX
 from app.routes._stub import not_implemented
 
-router = APIRouter(tags=["dispatch"], dependencies=[Security(bearer_scheme)])
+router = APIRouter(prefix=API_PREFIX, tags=["dispatch"], dependencies=[Security(bearer_scheme)])
 
 
 @router.post(

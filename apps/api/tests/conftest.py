@@ -1,20 +1,30 @@
 import os
 from collections.abc import Callable, Iterator
+from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
 
 from app.db.session import get_engine, get_sessionmaker
 from app.main import create_app
-from app.settings import Settings, get_settings
+from app.settings import Settings
 
 TEST_JWT_SECRET = "test-only-jwt-secret-0123456789abcdef"  # not a real secret
 
 ClientFactory = Callable[[str], TestClient]
 
 
-def make_settings(database_url: str) -> Settings:
-    return Settings(database_url=database_url, jwt_secret=TEST_JWT_SECRET, env="test")
+SQLITE_MEMORY = "sqlite+pysqlite:///:memory:"
+
+
+def make_settings(database_url: str = SQLITE_MEMORY, **overrides: Any) -> Settings:
+    values: dict[str, Any] = {
+        "database_url": database_url,
+        "jwt_secret": TEST_JWT_SECRET,
+        "env": "test",
+        **overrides,
+    }
+    return Settings(**values)
 
 
 @pytest.fixture
@@ -23,9 +33,7 @@ def client_for() -> Iterator[ClientFactory]:
     created: list[TestClient] = []
 
     def _make(database_url: str) -> TestClient:
-        app = create_app()
-        app.dependency_overrides[get_settings] = lambda: make_settings(database_url)
-        c = TestClient(app)
+        c = TestClient(create_app(make_settings(database_url)))
         created.append(c)
         return c
 

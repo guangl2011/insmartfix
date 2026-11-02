@@ -11,10 +11,11 @@ from app.contract.common import ErrorCode, ErrorEnvelope
 from app.contract.health import HealthResponse, ReadyChecks, ReadyResponse
 from app.core.errors import error_response
 from app.db.session import get_engine, ping
+from app.routes import API_PREFIX
 from app.settings import Settings, get_settings
 
 logger = logging.getLogger(__name__)
-router = APIRouter(tags=["health"])
+router = APIRouter(prefix=API_PREFIX, tags=["health"])
 
 
 @router.get("/healthz", operation_id="healthz")

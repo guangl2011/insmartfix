@@ -35,7 +35,10 @@ class Settings(BaseSettings):
     # Deterministic SLA tests (TEST_PLAN §3). Allow-listed to TEST_CLOCK_ENVS only (D10 H-7).
     fake_clock: bool = False
 
+    # NFR-6 / D10 L-7: no client needs CORS (web goes through the BFF, mobile is native). Empty in
+    # production; dev/mock origins come from env only. Never a wildcard.
     cors_origins: list[str] = Field(default_factory=list)
+    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
 
     @field_validator("database_url")
     @classmethod
@@ -50,6 +53,19 @@ class Settings(BaseSettings):
                 f"got ENV={self.env}"
             )
         return self
+
+    @model_validator(mode="after")
+    def _cors_locked(self) -> "Settings":
+        if any("*" in o for o in self.cors_origins):
+            raise ValueError("CORS_ORIGINS must list exact origins, never a wildcard")
+        if self.env == "production" and self.cors_origins:
+            raise ValueError("CORS_ORIGINS must be empty in production (D10 L-7)")
+        return self
+
+    @property
+    def test_clock_enabled(self) -> bool:
+        """D10 H-7 allow-list: both conditions, checked again at app build."""
+        return self.fake_clock and self.env in TEST_CLOCK_ENVS
 
 
 @lru_cache

@@ -12,9 +12,10 @@ from app.contract.common import IdempotencyKeyHeader, error_responses
 from app.contract.schedule import DeclineRequest, ScheduleResponse
 from app.contract.security import bearer_scheme
 from app.contract.workorders import WorkOrderDetail
+from app.routes import API_PREFIX
 from app.routes._stub import not_implemented
 
-router = APIRouter(tags=["contractor"], dependencies=[Security(bearer_scheme)])
+router = APIRouter(prefix=API_PREFIX, tags=["contractor"], dependencies=[Security(bearer_scheme)])
 
 SCHEDULE_ERRORS = error_responses(401, 403, 404, 422, 501)
 ACCEPT_ERRORS = error_responses(401, 403, 404, 409, 422, 501)

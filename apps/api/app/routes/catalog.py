@@ -8,9 +8,10 @@ from fastapi.responses import JSONResponse
 from app.contract.catalog import FailureCodeList
 from app.contract.common import error_responses
 from app.contract.security import bearer_scheme
+from app.routes import API_PREFIX
 from app.routes._stub import not_implemented
 
-router = APIRouter(tags=["catalog"], dependencies=[Security(bearer_scheme)])
+router = APIRouter(prefix=API_PREFIX, tags=["catalog"], dependencies=[Security(bearer_scheme)])
 
 
 @router.get(

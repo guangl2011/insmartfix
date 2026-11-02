@@ -16,8 +16,9 @@ from schemathesis.specs.openapi.checks import (
 )
 
 from app.main import create_app
+from tests.conftest import make_settings
 
-schema = schemathesis.openapi.from_asgi("/openapi.json", create_app())
+schema = schemathesis.openapi.from_asgi("/openapi.json", create_app(make_settings()))
 
 
 @schema.exclude(path_regex=r"^/v1/readyz$").parametrize()
