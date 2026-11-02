@@ -209,6 +209,9 @@ importers:
 
   packages/core:
     devDependencies:
+      '@insmartfix/contracts':
+        specifier: workspace:*
+        version: link:../contracts
       '@vitest/coverage-v8':
         specifier: 4.1.12
         version: 4.1.12(vitest@4.1.12)
