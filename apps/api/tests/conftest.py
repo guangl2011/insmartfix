@@ -4,13 +4,17 @@ from typing import Any
 from uuid import UUID
 
 import pytest
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.dependencies.models import Dependant
 from fastapi.testclient import TestClient
 
 from app.auth.deps import get_principal
 from app.auth.service import Principal
 from app.contract.auth import Role
+from app.core.routes import iter_http_routes
 from app.db.session import get_engine, get_sessionmaker
+from app.identity_gate.deps import AuthorizedTarget, GateDependency
+from app.identity_gate.policy import Action, AllowedAs
 from app.main import create_app
 from app.settings import Settings
 
@@ -71,7 +75,29 @@ FAKE_CONTRACTOR = Principal(
 
 
 def authed_app(settings: Settings | None = None, principal: Principal = FAKE_CONTRACTOR) -> FastAPI:
-    """An app whose `get_principal` returns `principal` without a token or a database."""
+    """An app where `get_principal` returns `principal` and every identity gate allows, with no
+    token or database. For unit tests of handlers and contract shape only; gate behaviour is
+    tested in tests/security and tests/integration."""
     app = create_app(settings or make_settings())
     app.dependency_overrides[get_principal] = lambda: principal
+    for rc in iter_http_routes(app):
+        dependant = getattr(rc, "dependant", None)
+        for gate in _gates(dependant) if dependant is not None else ():
+            app.dependency_overrides[gate] = _allow(principal, gate.action)
     return app
+
+
+def _allow(principal: Principal, action: Action) -> Callable[[Request], AuthorizedTarget]:
+    def allow(request: Request) -> AuthorizedTarget:
+        target = AuthorizedTarget(principal, action, AllowedAs.BOUND, principal.contractor_id, None)
+        request.state.authorized_target = target
+        return target
+
+    return allow
+
+
+def _gates(dep: Dependant) -> Iterator[GateDependency]:
+    for sub in dep.dependencies:
+        if isinstance(sub.call, GateDependency):
+            yield sub.call
+        yield from _gates(sub)
