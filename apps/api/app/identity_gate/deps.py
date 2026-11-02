@@ -26,6 +26,7 @@ from app.contract.common import ErrorCode
 from app.core.errors import ApiError
 from app.db.models import Contractor, Dispatch, DispatchCandidate, WorkOrder
 from app.db.session import get_db
+from app.dispatch.expiry import expire_due
 from app.identity_gate.policy import (
     Action,
     Allow,
@@ -173,10 +174,27 @@ class GateDependency:
             wo=facts,
             needs_wo=self.has_wo,
         )
+        if isinstance(decision, Unavailable409) and facts is not None:
+            lazy_expire_for_former_offeree(db, principal, facts, at)
         raise_for(decision)
         assert isinstance(decision, Allow)  # noqa: S101 — raise_for handled every other case
         resolved_cid = principal.contractor_id if principal.contractor_id is not None else cid
         return AuthorizedTarget(principal, self.action, decision.as_, resolved_cid, facts)
+
+
+def lazy_expire_for_former_offeree(
+    db: Session, principal: Principal, facts: WorkOrderFacts, at: datetime
+) -> None:
+    """FR-5.2: the caller's own offer is due but not swept yet (they are "past" by L-6). Their
+    request touches the offer, so expire and re-offer it now (committed) before answering 409.
+    Only for the contractor who currently holds the offer; nobody else's request moves it."""
+    if (
+        principal.contractor_id is not None
+        and facts.current_contractor_id == principal.contractor_id
+        and facts.dispatch_state == "PENDING"
+        and expire_due(db, at, wo_id=facts.wo_id)
+    ):
+        db.commit()
 
 
 def authorized_target(request: Request) -> AuthorizedTarget:

@@ -31,6 +31,7 @@ def make_settings(database_url: str = SQLITE_MEMORY, **overrides: Any) -> Settin
         "database_url": database_url,
         "jwt_secret": TEST_JWT_SECRET,
         "env": "test",
+        "sweeper_enabled": False,  # tests drive expiry explicitly (sweeper tests opt in)
         **overrides,
     }
     return Settings(**values)

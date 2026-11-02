@@ -1,5 +1,8 @@
 """FastAPI application factory. Run with `uvicorn --factory app.main:create_app`."""
 
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -7,6 +10,8 @@ from app.clock import clock
 from app.core.errors import install_error_handlers
 from app.core.logging import configure_logging
 from app.core.middleware import BodySizeLimitMiddleware, RequestContextMiddleware
+from app.db.session import get_engine
+from app.dispatch.sweeper import Sweeper
 from app.routes import auth, catalog, contractor, dispatch, health, workorders
 from app.settings import TEST_CLOCK_ENVS, Settings, get_settings
 
@@ -19,6 +24,7 @@ def create_app(settings: Settings | None = None, *, schema_only: bool = False) -
     any settings, for the OpenAPI export.
     """
     app = FastAPI(
+        lifespan=_lifespan,
         title="InsmartFix API",
         version="1.0.0",
         description="Contract: docs/specs/INSMARTFIX_V1_SPEC.md §5.",
@@ -30,6 +36,7 @@ def create_app(settings: Settings | None = None, *, schema_only: bool = False) -
         return app
 
     settings = settings or get_settings()
+    app.state.settings = settings
     app.dependency_overrides[get_settings] = lambda: settings
     configure_logging(settings.log_level)
 
@@ -54,3 +61,18 @@ def create_app(settings: Settings | None = None, *, schema_only: bool = False) -
         )
     app.add_middleware(RequestContextMiddleware)
     return app
+
+
+@asynccontextmanager
+async def _lifespan(app: FastAPI) -> AsyncIterator[None]:
+    """Start the SLA sweeper (FR-5.2) for the app's lifetime when enabled and on Postgres."""
+    settings: Settings | None = getattr(app.state, "settings", None)
+    sweeper = None
+    if settings and settings.sweeper_enabled and settings.database_url.startswith("postgresql"):
+        sweeper = Sweeper(get_engine(settings.database_url), settings.sweeper_interval_seconds)
+        sweeper.start()
+    try:
+        yield
+    finally:
+        if sweeper is not None:
+            sweeper.stop()

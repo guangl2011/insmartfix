@@ -30,7 +30,7 @@ def _active_key(row: SummaryRow) -> datetime:
 def build_schedule(
     db: Session, contractor_id: UUID, now: datetime, teasers: TeaserSource | None = None
 ) -> ScheduleResponse:
-    expire_lazily(db, now)
+    expire_lazily(db, now, contractor_id=contractor_id)
     source = teasers or NullTeaserSource()
     offers = [
         r

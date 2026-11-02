@@ -176,7 +176,11 @@ def test_T_INBOX_1_contractor_path_and_owner_view_match_the_me_alias(
 
 
 def test_T_INBOX_1_other_contractor_sees_only_their_own(api: TestClient, inbox: Inbox) -> None:
+    """Ana sees her own offer, plus Marco's past-deadline offer, which her read lazily expired
+    and re-offered to her as the next rank (FR-5.2) with a fresh deadline, so it sorts last."""
     a = inbox.t.contractors["ana"]
     s = _schedule(api, "/v1/me/schedule", a.auth)
-    assert [o.wo_id for o in s.offers] == [inbox.ids["ana_offer"]]
+    assert [o.wo_id for o in s.offers] == [inbox.ids["ana_offer"], inbox.ids["past_deadline"]]
     assert s.active == []
+    marco = _schedule(api, "/v1/me/schedule", inbox.t.contractors["marco"].auth)
+    assert inbox.ids["past_deadline"] not in [o.wo_id for o in marco.offers]
