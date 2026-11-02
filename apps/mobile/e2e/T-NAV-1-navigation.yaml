@@ -1,0 +1,30 @@
+# T-NAV-1 (D I): two nav items + a disabled Voice intake stub; Inbox and Account resolve.
+appId: ai.insmart.fix
+name: T-NAV-1 bottom nav and routes
+tags:
+  - T-NAV-1
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: 'nav-inbox'
+    timeout: 60000
+- assertVisible:
+    id: 'nav-account'
+- assertVisible:
+    id: 'nav-voice'
+    enabled: false
+- tapOn:
+    id: 'nav-account'
+- assertVisible:
+    id: 'account-screen'
+- tapOn:
+    id: 'nav-voice'
+- assertVisible:
+    id: 'account-screen'
+- tapOn:
+    id: 'nav-inbox'
+- assertVisible:
+    id: 'inbox-screen'
+- takeScreenshot: T-NAV-1-inbox
