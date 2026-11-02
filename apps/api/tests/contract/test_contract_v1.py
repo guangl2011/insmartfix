@@ -213,6 +213,7 @@ IMPLEMENTED = {
     "accept_my_offer",
     "decline_offer",
     "decline_my_offer",
+    "upload_workorder_photo",
 }
 
 
