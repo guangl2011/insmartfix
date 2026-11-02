@@ -1,0 +1,22 @@
+{
+  "name": "@insmartfix/core",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Pure TS logic shared by web and mobile (SLA formatter, ordering, validation, draft store, offline queue). Filled in M3.",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "4.1.12",
+    "vitest": "4.1.12"
+  }
+}

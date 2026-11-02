@@ -1,0 +1,134 @@
+# InsmartFix local-stack and ci-ephemeral environment (TEST_PLAN §3).
+#   cp infra/.env.example infra/.env   # or: make up (does it for you)
+#   docker compose -f infra/docker-compose.yml up -d --build --wait
+# Config is env-only; every value comes from infra/.env. The same Dockerfiles build staging images.
+name: insmartfix
+
+x-api-env: &api-env
+  ENV: ${ENV}
+  DATABASE_URL: ${DATABASE_URL}
+  JWT_SECRET: ${JWT_SECRET}
+  FAKE_CLOCK: ${FAKE_CLOCK}
+  CORS_ORIGINS: ${CORS_ORIGINS}
+  S3_ENDPOINT_URL: ${S3_ENDPOINT_URL}
+  S3_BUCKET: ${S3_BUCKET}
+  S3_REGION: ${S3_REGION}
+  S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID}
+  S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY}
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - '127.0.0.1:${POSTGRES_HOST_PORT}:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  minio:
+    # The upstream minio/minio image is no longer published on Docker Hub; this is the last
+    # Bitnami community build (S3-compatible, dev/test only — staging/prod use a managed bucket).
+    image: bitnamilegacy/minio:2025.7.23
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY_ID}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_ACCESS_KEY}
+      # Private bucket, no anonymous policy in any environment (D10 M-9 / T-PHOTO-3).
+      MINIO_DEFAULT_BUCKETS: ${S3_BUCKET}
+    ports:
+      - '127.0.0.1:${MINIO_HOST_PORT}:9000'
+      - '127.0.0.1:${MINIO_CONSOLE_HOST_PORT}:9001'
+    volumes:
+      - miniodata:/bitnami/minio/data
+    healthcheck:
+      test: ['CMD', 'curl', '-fsS', 'http://127.0.0.1:9000/minio/health/live']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  migrate:
+    # Same image as the API; runs migrations as a separate step (LAUNCH_PLAN §3).
+    build:
+      context: ../apps/api
+    image: insmartfix-api:local
+    command: ['alembic', 'upgrade', 'head']
+    environment:
+      <<: *api-env
+      MIGRATIONS_DATABASE_URL: ${MIGRATIONS_DATABASE_URL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: 'no'
+
+  api:
+    build:
+      context: ../apps/api
+    image: insmartfix-api:local
+    environment: *api-env
+    ports:
+      - '127.0.0.1:${API_HOST_PORT}:8000'
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/v1/readyz', timeout=2).status == 200 else 1)"
+      interval: 5s
+      timeout: 3s
+      start_period: 10s
+      retries: 20
+
+  web:
+    build:
+      context: ..
+      dockerfile: apps/web/Dockerfile
+    image: insmartfix-web:local
+    environment:
+      DATA_SOURCE: ${DATA_SOURCE}
+      API_BASE_URL: ${API_BASE_URL}
+    ports:
+      - '127.0.0.1:${WEB_HOST_PORT}:3000'
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/api/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 5s
+      timeout: 3s
+      start_period: 10s
+      retries: 20
+
+  toxiproxy:
+    # Resilience tests (TEST_PLAN §2): clients can target :18000 (API) or :15432 (Postgres) and
+    # inject latency / timeouts / resets through the admin API on :8474.
+    image: ${TOXIPROXY_IMAGE}
+    command: ['-host=0.0.0.0', '-config=/config/toxiproxy.json']
+    volumes:
+      - ./toxiproxy.json:/config/toxiproxy.json:ro
+    ports:
+      - '127.0.0.1:${TOXIPROXY_HOST_PORT}:8474'
+      - '127.0.0.1:${TOXIPROXY_API_PROXY_HOST_PORT}:18000'
+      - '127.0.0.1:${TOXIPROXY_PG_PROXY_HOST_PORT}:15432'
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  miniodata:
