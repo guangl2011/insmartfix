@@ -22,7 +22,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "msw": "2.15.0",
+    "msw": "3.0.4",
     "openapi-fetch": "0.17.0"
   },
   "devDependencies": {
