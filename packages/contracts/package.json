@@ -31,6 +31,6 @@
     "ajv": "8.18.0",
     "ajv-formats": "3.0.1",
     "openapi-typescript": "7.13.0",
-    "vitest": "4.1.12"
+    "vitest": "5.1.0"
   }
 }
